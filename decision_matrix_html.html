@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Decision Matrix</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;font-size:14px;background:#f5f5f3;color:#1a1a1a;min-height:100vh}
+h1{font-size:18px;font-weight:500}
+input,select,button{font-family:inherit;font-size:13px}
+input[type=text],input[type=number]{padding:5px 8px;border:0.5px solid #ccc;border-radius:6px;outline:none;background:#fff;color:#1a1a1a}
+input[type=text]:focus,input[type=number]:focus{border-color:#378ADD;box-shadow:0 0 0 2px rgba(55,138,221,.15)}
+input[type=number]{width:56px;text-align:center}
+input[type=range]{width:110px;accent-color:#378ADD}
+button{padding:6px 13px;border:0.5px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;color:#1a1a1a;transition:background .15s}
+button:hover{background:#f0f0ee}
+button:active{transform:scale(.98)}
+button.primary{background:#378ADD;color:#fff;border-color:#378ADD}
+button.primary:hover{background:#2a6fb5}
+button.icon{padding:2px 7px;font-size:16px;color:#888;border-color:transparent;background:none}
+button.icon:hover{color:#c00;background:none}
+.wrap{max-width:940px;margin:0 auto;padding:20px 16px}
+.topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+.topbar-right{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tabs{display:flex;border-bottom:0.5px solid #ddd;margin-bottom:20px;gap:0}
+.tab{padding:8px 18px;font-size:13px;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;color:#888;font-weight:400}
+.tab.active{color:#1a1a1a;font-weight:500;border-bottom-color:#378ADD}
+.panel{display:none}.panel.active{display:block}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-weight:500;color:#666;font-size:12px;padding:7px 8px;border-bottom:0.5px solid #ddd;text-align:left}
+td{padding:6px 8px;border-bottom:0.5px solid #eee}
+td.center{text-align:center}
+.card{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:16px 20px;margin-bottom:16px}
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+.metric{background:#f5f5f3;border-radius:8px;padding:12px 16px}
+.metric.best{border:2px solid #378ADD;background:#f0f6fd}
+.metric .rank{font-size:11px;color:#888;margin-bottom:3px}
+.metric .name{font-size:15px;font-weight:500;margin-bottom:2px}
+.metric .score{font-size:22px;font-weight:500}
+.metric.best .score{color:#378ADD}
+.metric .pct{font-size:12px;color:#888}
+.crit-row{display:flex;align-items:center;gap:10px;background:#f5f5f3;padding:9px 12px;border-radius:8px;border:0.5px solid #eee;margin-bottom:8px}
+.crit-row input[type=text]{flex:1;background:#fff}
+.add-row{display:flex;gap:8px;margin-top:10px}
+.add-row input{flex:1}
+.chip{display:inline-flex;align-items:center;gap:6px;background:#f0f0ee;border-radius:6px;padding:3px 10px;font-size:12px;border:0.5px solid #ddd}
+.chip span.del{cursor:pointer;color:#aaa;font-size:14px}.chip span.del:hover{color:#c00}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.toast{position:fixed;top:16px;right:16px;background:#fff;border:0.5px solid #ccc;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:500;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.08);display:none}
+.bar-row{margin-bottom:11px}
+.bar-label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px}
+.bar-track{background:#eee;border-radius:4px;height:22px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .4s}
+.best-badge{font-size:11px;background:#e6f1fb;color:#185fa5;padding:2px 7px;border-radius:4px;margin-left:6px}
+.section-label{font-size:13px;font-weight:500;color:#666;margin-bottom:10px}
+@media(max-width:600px){.topbar{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <h1>Decision matrix</h1>
+    <div class="topbar-right">
+      <input type="text" id="scenarioName" placeholder="Scenario name…" style="width:140px">
+      <button onclick="saveScenario()">Save</button>
+      <button onclick="exportJSON()">Export JSON</button>
+      <button onclick="document.getElementById('fileIn').click()">Import JSON</button>
+      <input type="file" id="fileIn" accept=".json" style="display:none" onchange="importJSON(event)">
+    </div>
+  </div>
+
+  <div id="chipsWrap" class="chips"></div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('matrix',this)">Matrix</button>
+    <button class="tab" onclick="switchTab('results',this)">Results</button>
+    <button class="tab" onclick="switchTab('settings',this)">Criteria &amp; weights</button>
+  </div>
+
+  <!-- MATRIX -->
+  <div id="panel-matrix" class="panel active">
+    <div style="overflow-x:auto">
+      <table id="matrixTable"></table>
+    </div>
+    <div class="add-row" style="margin-top:12px">
+      <input type="text" id="newOpt" placeholder="New option name…" onkeydown="if(event.key==='Enter')addOption()">
+      <button onclick="addOption()">+ Add option</button>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="panel-results" class="panel">
+    <div id="metricCards" class="metric-grid"></div>
+    <div class="card">
+      <div class="section-label">Score comparison</div>
+      <div id="barChart"></div>
+    </div>
+    <div class="card">
+      <div class="section-label">Breakdown by criterion</div>
+      <div style="overflow-x:auto"><table id="breakdownTable"></table></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="panel-settings" class="panel">
+    <div class="section-label">Criteria &amp; weights</div>
+    <div id="critList"></div>
+    <div class="add-row">
+      <input type="text" id="newCrit" placeholder="New criterion name…" onkeydown="if(event.key==='Enter')addCriterion()">
+      <button onclick="addCriterion()">+ Add criterion</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const PALETTE=["#378ADD","#1D9E75","#D85A30","#7F77DD","#D4537E","#639922","#BA7515","#E24B4A","#888780"];
+const SK="dm_autosave", SS="dm_scenarios";
+
+let state={
+  options:["Option A","Option B","Option C"],
+  criteria:[
+    {name:"Cost",weight:7},{name:"Risk",weight:6},{name:"Benefit",weight:9},
+    {name:"Time",weight:5},{name:"Strategic value",weight:8}
+  ],
+  scores:{
+    "Option A":{"Cost":7,"Risk":6,"Benefit":8,"Time":7,"Strategic value":9},
+    "Option B":{"Cost":5,"Risk":8,"Benefit":7,"Time":6,"Strategic value":7},
+    "Option C":{"Cost":9,"Risk":5,"Benefit":6,"Time":9,"Strategic value":6}
+  }
+};
+let scenarios={};
+
+function load(d){state={options:[...d.options],criteria:d.criteria.map(c=>({...c})),scores:JSON.parse(JSON.stringify(d.scores))};render();}
+
+function calcTotals(){
+  const maxP=state.criteria.reduce((s,c)=>s+c.weight*10,0);
+  return state.options.map(opt=>{
+    const total=state.criteria.reduce((s,c)=>s+(state.scores[opt]?.[c.name]||1)*c.weight,0);
+    return{opt,total,pct:maxP>0?Math.round(total/maxP*100):0};
+  }).sort((a,b)=>b.total-a.total);
+}
+
+function render(){
+  autosave();
+  renderChips();
+  renderMatrix();
+  renderResults();
+  renderSettings();
+}
+
+function renderChips(){
+  const w=document.getElementById("chipsWrap");
+  const list=Object.keys(scenarios);
+  if(!list.length){w.innerHTML="";return;}
+  w.innerHTML='<span style="font-size:12px;color:#888;align-self:center">Saved:</span>'+
+    list.map(n=>`<span class="chip"><span style="cursor:pointer" onclick="loadScenario('${esc(n)}')">${esc(n)}</span><span class="del" onclick="delScenario('${esc(n)}')">×</span></span>`).join("");
+}
+
+function renderMatrix(){
+  const t=document.getElementById("matrixTable");
+  const ranked=calcTotals();
+  let h=`<thead><tr><th>Option</th>`;
+  state.criteria.forEach(c=>{h+=`<th class="center">${esc(c.name)}<br><span style="font-weight:400;color:#aaa">w:${c.weight}</span></th>`;});
+  h+=`<th style="text-align:right">Total</th><th></th></tr></thead><tbody>`;
+  state.options.forEach(opt=>{
+    const r=ranked.findIndex(x=>x.opt===opt);
+    const {total,pct}=ranked.find(x=>x.opt===opt);
+    h+=`<tr style="background:${r===0?'rgba(55,138,221,.05)':''}">`;
+    h+=`<td><input type="text" value="${esc(opt)}" style="width:110px;font-weight:${r===0?500:400}" onblur="renameOption('${esc(opt)}',this.value)"></td>`;
+    state.criteria.forEach(c=>{
+      const sc=state.scores[opt]?.[c.name]??5;
+      h+=`<td class="center"><input type="number" min="1" max="10" value="${sc}" onchange="setScore('${esc(opt)}','${esc(c.name)}',this.value)"></td>`;
+    });
+    h+=`<td style="text-align:right;font-weight:500">${total}<span style="font-size:11px;color:#aaa;margin-left:3px">${pct}%</span></td>`;
+    h+=`<td><button class="icon" onclick="removeOption('${esc(opt)}')">×</button></td></tr>`;
+  });
+  h+=`</tbody>`;
+  t.innerHTML=h;
+}
+
+function renderResults(){
+  const ranked=calcTotals();
+  const mc=document.getElementById("metricCards");
+  mc.innerHTML=ranked.map(({opt,total,pct},i)=>
+    `<div class="metric${i===0?' best':''}">
+      <div class="rank">#${i+1}${i===0?' (best)':''}</div>
+      <div class="name">${esc(opt)}</div>
+      <div class="score">${total}</div>
+      <div class="pct">${pct}% of max</div>
+    </div>`
+  ).join("");
+
+  const bc=document.getElementById("barChart");
+  const maxT=ranked[0]?.total||1;
+  bc.innerHTML=ranked.map(({opt,total,pct},i)=>
+    `<div class="bar-row">
+      <div class="bar-label">
+        <span style="font-weight:${i===0?500:400}">${i===0?'🥇 ':''}${esc(opt)}${i===0?'<span class="best-badge">best</span>':''}</span>
+        <span style="color:#888">${total} pts · ${pct}%</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.round(total/maxT*100)}%;background:${PALETTE[i%PALETTE.length]}"></div></div>
+    </div>`
+  ).join("");
+
+  const bt=document.getElementById("breakdownTable");
+  let h=`<thead><tr><th>Criterion</th><th class="center">Weight</th>`;
+  state.options.forEach(o=>h+=`<th class="center">${esc(o)}</th>`);
+  h+=`</tr></thead><tbody>`;
+  state.criteria.forEach(c=>{
+    const vals=state.options.map(o=>(state.scores[o]?.[c.name]??5)*c.weight);
+    const best=Math.max(...vals);
+    h+=`<tr><td>${esc(c.name)}</td><td class="center" style="color:#888">${c.weight}</td>`;
+    state.options.forEach((o,i)=>{
+      const sc=state.scores[o]?.[c.name]??5, ws=sc*c.weight;
+      h+=`<td class="center" style="font-weight:${ws===best?500:400};color:${ws===best?'#378ADD':'inherit'}">${ws}<span style="font-size:11px;color:#aaa;margin-left:2px">(${sc}×${c.weight})</span></td>`;
+    });
+    h+=`</tr>`;
+  });
+  h+=`</tbody>`;
+  bt.innerHTML=h;
+}
+
+function renderSettings(){
+  const cl=document.getElementById("critList");
+  cl.innerHTML=state.criteria.map((c,i)=>
+    `<div class="crit-row">
+      <input type="text" value="${esc(c.name)}" onblur="renameCrit(${i},this.value)" style="flex:1">
+      <span style="font-size:12px;color:#888;min-width:64px">Weight: <b>${c.weight}</b></span>
+      <input type="range" min="1" max="10" step="1" value="${c.weight}" oninput="setCritWeight(${i},+this.value);this.previousElementSibling.innerHTML='Weight: <b>'+this.value+'</b>'">
+      <button class="icon" onclick="removeCriterion(${i})">×</button>
+    </div>`
+  ).join("");
+}
+
+function switchTab(name,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='results') renderResults();
+}
+
+function setScore(opt,crit,val){
+  if(!state.scores[opt])state.scores[opt]={};
+  state.scores[opt][crit]=Math.min(10,Math.max(1,+val||1));
+  autosave();
+  if(document.getElementById('panel-results').classList.contains('active'))renderResults();
+}
+
+function setCritWeight(i,val){state.criteria[i].weight=val;autosave();}
+
+function renameCrit(i,newName){
+  if(!newName.trim())return;
+  const old=state.criteria[i].name;
+  state.criteria[i].name=newName;
+  state.options.forEach(o=>{
+    if(state.scores[o]&&old in state.scores[o]){state.scores[o][newName]=state.scores[o][old];delete state.scores[o][old];}
+  });
+  render();
+}
+
+function removeCriterion(i){
+  const name=state.criteria[i].name;
+  state.criteria.splice(i,1);
+  state.options.forEach(o=>{if(state.scores[o])delete state.scores[o][name];});
+  render();
+}
+
+function addCriterion(){
+  const inp=document.getElementById('newCrit');
+  const name=inp.value.trim()||`Criterion ${state.criteria.length+1}`;
+  state.criteria.push({name,weight:5});
+  inp.value='';
+  render();
+}
+
+function addOption(){
+  const inp=document.getElementById('newOpt');
+  const name=inp.value.trim()||`Option ${String.fromCharCode(65+state.options.length)}`;
+  state.options.push(name);
+  inp.value='';
+  render();
+}
+
+function removeOption(opt){
+  state.options=state.options.filter(x=>x!==opt);
+  delete state.scores[opt];
+  render();
+}
+
+function renameOption(oldName,newName){
+  if(!newName.trim()||newName===oldName)return;
+  state.options=state.options.map(x=>x===oldName?newName:x);
+  state.scores[newName]=state.scores[oldName]||{};
+  delete state.scores[oldName];
+  render();
+}
+
+function saveScenario(){
+  const name=document.getElementById('scenarioName').value.trim()||`Scenario ${Object.keys(scenarios).length+1}`;
+  scenarios[name]={options:[...state.options],criteria:state.criteria.map(c=>({...c})),scores:JSON.parse(JSON.stringify(state.scores))};
+  try{localStorage.setItem(SS,JSON.stringify(scenarios));}catch{}
+  showToast(`Saved "${name}"`);
+  document.getElementById('scenarioName').value='';
+  renderChips();
+}
+
+function loadScenario(name){if(scenarios[name]){load(scenarios[name]);showToast(`Loaded "${name}"`);};}
+
+function delScenario(name){delete scenarios[name];try{localStorage.setItem(SS,JSON.stringify(scenarios));}catch{}renderChips();}
+
+function exportJSON(){
+  const blob=new Blob([JSON.stringify({options:state.options,criteria:state.criteria,scores:state.scores},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='decision-matrix.json';a.click();
+}
+
+function importJSON(e){
+  const file=e.target.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=()=>{try{load(JSON.parse(r.result));showToast('Imported successfully');}catch{showToast('Invalid JSON');}};
+  r.readAsText(file);e.target.value='';
+}
+
+function autosave(){try{localStorage.setItem(SK,JSON.stringify({options:state.options,criteria:state.criteria,scores:state.scores}));}catch{}}
+
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(()=>t.style.display='none',2200);}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+
+// Init
+try{const r=localStorage.getItem(SK);if(r)load(JSON.parse(r));else render();}catch{render();}
+try{const s=localStorage.getItem(SS);if(s)scenarios=JSON.parse(s);}catch{}
+renderChips();
+</script>
+</body>
+</html>
