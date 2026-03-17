@@ -114,15 +114,15 @@ const PALETTE=["#378ADD","#1D9E75","#D85A30","#7F77DD","#D4537E","#639922","#BA7
 const SK="dm_autosave", SS="dm_scenarios";
 
 let state={
-  options:["Option A","Option B","Option C"],
+  options:["Hotel 1","Hotel 2","Hotel 3","Hotel 4"],
   criteria:[
-    {name:"Cost",weight:7},{name:"Risk",weight:6},{name:"Benefit",weight:9},
-    {name:"Time",weight:5},{name:"Strategic value",weight:8}
+    {name:"Ambiance",weight:8},{name:"Price",weight:9},{name:"Location",weight:7},{name:"Hygiene",weight:8}
   ],
   scores:{
-    "Option A":{"Cost":7,"Risk":6,"Benefit":8,"Time":7,"Strategic value":9},
-    "Option B":{"Cost":5,"Risk":8,"Benefit":7,"Time":6,"Strategic value":7},
-    "Option C":{"Cost":9,"Risk":5,"Benefit":6,"Time":9,"Strategic value":6}
+    "Hotel 1":{"Ambiance":7,"Price":6,"Location":8,"Hygiene":8},
+    "Hotel 2":{"Ambiance":8,"Price":8,"Location":6,"Hygiene":7},
+    "Hotel 3":{"Ambiance":6,"Price":9,"Location":7,"Hygiene":6},
+    "Hotel 4":{"Ambiance":9,"Price":5,"Location":9,"Hygiene":9}
   }
 };
 let scenarios={};
