@@ -18,6 +18,8 @@ button:hover{background:#f0f0ee}
 button:active{transform:scale(.98)}
 button.icon{padding:2px 7px;font-size:16px;color:#888;border-color:transparent;background:none}
 button.icon:hover{color:#c00;background:none}
+button.danger{border-color:#f0b0b0;color:#c00}
+button.danger:hover{background:#fff0f0}
 .wrap{max-width:940px;margin:0 auto;padding:20px 16px}
 .topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px}
 .topbar-right{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -52,6 +54,11 @@ td.center{text-align:center}
 .bar-fill{height:100%;border-radius:4px;transition:width .35s}
 .best-badge{font-size:11px;background:#e6f1fb;color:#185fa5;padding:2px 7px;border-radius:4px;margin-left:6px}
 .section-label{font-size:13px;font-weight:500;color:#666;margin-bottom:10px}
+.confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:1000;align-items:center;justify-content:center}
+.confirm-overlay.open{display:flex}
+.confirm-box{background:#fff;border-radius:12px;border:0.5px solid #ddd;padding:24px 28px;max-width:340px;width:90%;text-align:center}
+.confirm-box p{font-size:14px;color:#333;margin-bottom:20px;line-height:1.5}
+.confirm-box .actions{display:flex;gap:10px;justify-content:center}
 @media(max-width:600px){.topbar{flex-direction:column;align-items:flex-start}}
 </style>
 </head>
@@ -65,17 +72,15 @@ td.center{text-align:center}
       <button onclick="exportJSON()">Export JSON</button>
       <button onclick="document.getElementById('fileIn').click()">Import JSON</button>
       <input type="file" id="fileIn" accept=".json" style="display:none" onchange="importJSON(event)">
+      <button class="danger" onclick="confirmReset()">Reset</button>
     </div>
   </div>
-
   <div id="chipsWrap" class="chips"></div>
-
   <div class="tabs">
     <button class="tab active" onclick="switchTab('matrix',this)">Matrix</button>
     <button class="tab" onclick="switchTab('results',this)">Results</button>
     <button class="tab" onclick="switchTab('settings',this)">Criteria &amp; weights</button>
   </div>
-
   <div id="panel-matrix" class="panel active">
     <div style="overflow-x:auto">
       <table id="matrixTable"></table>
@@ -85,7 +90,6 @@ td.center{text-align:center}
       <button onclick="addOption()">+ Add option</button>
     </div>
   </div>
-
   <div id="panel-results" class="panel">
     <div id="metricCards" class="metric-grid"></div>
     <div class="card">
@@ -97,7 +101,6 @@ td.center{text-align:center}
       <div style="overflow-x:auto"><table id="breakdownTable"></table></div>
     </div>
   </div>
-
   <div id="panel-settings" class="panel">
     <div class="section-label">Criteria &amp; weights</div>
     <div id="critList"></div>
@@ -107,13 +110,25 @@ td.center{text-align:center}
     </div>
   </div>
 </div>
+
+<!-- Reset confirm dialog -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <p>Reset everything to defaults?<br>This will clear all scores, criteria, and saved scenarios.</p>
+    <div class="actions">
+      <button class="danger" onclick="doReset()">Yes, reset</button>
+      <button onclick="closeConfirm()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
 const PALETTE=["#378ADD","#1D9E75","#D85A30","#7F77DD","#D4537E","#639922","#BA7515","#E24B4A","#888780"];
 const SK="dm_autosave", SS="dm_scenarios";
 
-let state={
+const DEFAULTS={
   options:["Hotel 1","Hotel 2","Hotel 3","Hotel 4"],
   criteria:[
     {name:"Ambiance",weight:8},{name:"Price",weight:9},{name:"Location",weight:7},{name:"Hygiene",weight:8}
@@ -125,18 +140,39 @@ let state={
     "Hotel 4":{"Ambiance":9,"Price":5,"Location":9,"Hygiene":9}
   }
 };
+
+function freshState(){
+  return{
+    options:[...DEFAULTS.options],
+    criteria:DEFAULTS.criteria.map(c=>({...c})),
+    scores:JSON.parse(JSON.stringify(DEFAULTS.scores))
+  };
+}
+
+let state=freshState();
 let scenarios={};
+let activeTab="matrix";
 
-// ── Active tab tracking ──────────────────────────────────────────────────────
-let activeTab = "matrix";
+// ── Reset ────────────────────────────────────────────────────────────────────
+function confirmReset(){ document.getElementById('confirmOverlay').classList.add('open'); }
+function closeConfirm(){ document.getElementById('confirmOverlay').classList.remove('open'); }
+function doReset(){
+  try{ localStorage.removeItem(SK); localStorage.removeItem(SS); }catch{}
+  scenarios={};
+  state=freshState();
+  closeConfirm();
+  renderChips();
+  render();
+  showToast('Reset to defaults');
+}
 
-function switchTab(name, btn){
-  activeTab = name;
+// ── Tab switching ────────────────────────────────────────────────────────────
+function switchTab(name,btn){
+  activeTab=name;
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
-  // Always re-render the panel being switched to
   if(name==='results')  renderResults();
   if(name==='settings') renderSettings();
   if(name==='matrix')   renderMatrix();
@@ -151,41 +187,33 @@ function calcTotals(){
   }).sort((a,b)=>b.total-a.total);
 }
 
-// ── Recalculate & update only the "live" parts without full re-render ─────────
-// This is called on every score/weight input event so the page never
-// needs a refresh and we don't lose focus on the input being edited.
+// ── Live recalc (no structural re-render) ────────────────────────────────────
 function recalc(){
   autosave();
-  updateTotalsColumn();   // update Total cells in matrix tab
-  if(activeTab==='results') renderResults();  // live-update results tab if open
+  updateTotalsColumn();
+  if(activeTab==='results') renderResults();
 }
 
-// Update only the Total column in the matrix table in-place
 function updateTotalsColumn(){
   const ranked=calcTotals();
-  const rows=document.querySelectorAll('#matrixTable tbody tr');
-  rows.forEach(row=>{
+  document.querySelectorAll('#matrixTable tbody tr').forEach(row=>{
     const nameInput=row.querySelector('input[type=text]');
     if(!nameInput) return;
-    const opt=nameInput.value;
-    const found=ranked.find(x=>x.opt===opt);
+    const found=ranked.find(x=>x.opt===nameInput.value);
     if(!found) return;
-    const totalCell=row.querySelector('td.total-cell');
-    if(totalCell) totalCell.innerHTML=`${found.total}<span style="font-size:11px;color:#aaa;margin-left:3px">${found.pct}%</span>`;
-    // highlight best row
-    const isBest=ranked[0].opt===opt;
+    const tc=row.querySelector('td.total-cell');
+    if(tc) tc.innerHTML=`${found.total}<span style="font-size:11px;color:#aaa;margin-left:3px">${found.pct}%</span>`;
+    const isBest=ranked[0].opt===nameInput.value;
     row.style.background=isBest?'rgba(55,138,221,.05)':'';
-    if(nameInput) nameInput.style.fontWeight=isBest?500:400;
+    nameInput.style.fontWeight=isBest?500:400;
   });
-  // also update weight hints in header
-  const ths=document.querySelectorAll('#matrixTable thead th.crit-th');
-  ths.forEach((th,i)=>{
+  document.querySelectorAll('#matrixTable thead th.crit-th').forEach((th,i)=>{
     const hint=th.querySelector('.w-hint');
-    if(hint && state.criteria[i]) hint.textContent=`w:${state.criteria[i].weight}`;
+    if(hint&&state.criteria[i]) hint.textContent=`w:${state.criteria[i].weight}`;
   });
 }
 
-// ── Full renders (called on structural changes: add/remove/rename) ────────────
+// ── Full renders ─────────────────────────────────────────────────────────────
 function render(){
   autosave();
   renderChips();
@@ -199,7 +227,10 @@ function renderChips(){
   const list=Object.keys(scenarios);
   if(!list.length){w.innerHTML="";return;}
   w.innerHTML='<span style="font-size:12px;color:#888;align-self:center">Saved:</span>'+
-    list.map(n=>`<span class="chip"><span style="cursor:pointer" onclick="loadScenario('${esc(n)}')">${esc(n)}</span><span class="del" onclick="delScenario('${esc(n)}')">×</span></span>`).join("");
+    list.map(n=>`<span class="chip"><span style="cursor:pointer" data-load="${esc(n)}">${esc(n)}</span><span class="del" data-del="${esc(n)}">×</span></span>`).join("");
+  // Use delegated listeners — safe for names with apostrophes
+  w.querySelectorAll('[data-load]').forEach(el=>el.addEventListener('click',()=>loadScenario(el.dataset.load)));
+  w.querySelectorAll('[data-del]').forEach(el=>el.addEventListener('click',()=>delScenario(el.dataset.del)));
 }
 
 function renderMatrix(){
@@ -215,34 +246,43 @@ function renderMatrix(){
     const{total,pct}=ranked.find(x=>x.opt===opt);
     h+=`<tr style="background:${r===0?'rgba(55,138,221,.05)':''}">`;
     h+=`<td><input type="text" value="${esc(opt)}" style="width:110px;font-weight:${r===0?500:400}"
-          data-oldname="${esc(opt)}"
-          onblur="renameOption(this.dataset.oldname,this.value);this.dataset.oldname=this.value"></td>`;
+          data-oldname="${esc(opt)}"></td>`;
     state.criteria.forEach(c=>{
       const sc=state.scores[opt]?.[c.name]??5;
-      h+=`<td class="center">
-            <input type="number" min="1" max="10" value="${sc}"
-              data-opt="${esc(opt)}" data-crit="${esc(c.name)}">
-          </td>`;
+      h+=`<td class="center"><input type="number" min="1" max="10" value="${sc}"
+            data-opt="${esc(opt)}" data-crit="${esc(c.name)}"></td>`;
     });
     h+=`<td style="text-align:right;font-weight:500" class="total-cell">${total}<span style="font-size:11px;color:#aaa;margin-left:3px">${pct}%</span></td>`;
-    h+=`<td><button class="icon" onclick="removeOption('${esc(opt)}')">×</button></td></tr>`;
+    h+=`<td><button class="icon" data-remove="${esc(opt)}">×</button></td></tr>`;
   });
   h+=`</tbody>`;
   t.innerHTML=h;
-  // Attach live input listeners to all score inputs
+
+  // Score inputs — live update
   t.querySelectorAll('input[type=number][data-opt]').forEach(inp=>{
-    inp.addEventListener('input', ()=>{
+    inp.addEventListener('input',()=>{
       const val=Math.min(10,Math.max(1,+inp.value||1));
       if(!state.scores[inp.dataset.opt]) state.scores[inp.dataset.opt]={};
       state.scores[inp.dataset.opt][inp.dataset.crit]=val;
       recalc();
     });
   });
+
+  // Option name — rename on blur or Enter
+  t.querySelectorAll('input[type=text][data-oldname]').forEach(inp=>{
+    const commit=()=>{ renameOption(inp.dataset.oldname, inp.value); inp.dataset.oldname=inp.value; };
+    inp.addEventListener('blur', commit);
+    inp.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); inp.blur(); }});
+  });
+
+  // Remove buttons — delegated, safe for any name
+  t.querySelectorAll('button[data-remove]').forEach(btn=>{
+    btn.addEventListener('click',()=>removeOption(btn.dataset.remove));
+  });
 }
 
 function renderResults(){
   const ranked=calcTotals();
-  // Metric cards
   document.getElementById("metricCards").innerHTML=ranked.map(({opt,total,pct},i)=>
     `<div class="metric${i===0?' best':''}">
       <div class="rank">#${i+1}${i===0?' (best)':''}</div>
@@ -251,7 +291,6 @@ function renderResults(){
       <div class="pct">${pct}% of max</div>
     </div>`
   ).join("");
-  // Bar chart
   const maxT=ranked[0]?.total||1;
   document.getElementById("barChart").innerHTML=ranked.map(({opt,total,pct},i)=>
     `<div class="bar-row">
@@ -262,7 +301,6 @@ function renderResults(){
       <div class="bar-track"><div class="bar-fill" style="width:${Math.round(total/maxT*100)}%;background:${PALETTE[i%PALETTE.length]}"></div></div>
     </div>`
   ).join("");
-  // Breakdown table
   let h=`<thead><tr><th>Criterion</th><th class="center">Weight</th>`;
   state.options.forEach(o=>h+=`<th class="center">${esc(o)}</th>`);
   h+=`</tr></thead><tbody>`;
@@ -282,35 +320,35 @@ function renderResults(){
 function renderSettings(){
   const cl=document.getElementById("critList");
   cl.innerHTML=state.criteria.map((c,i)=>
-    `<div class="crit-row">
-      <input type="text" value="${esc(c.name)}"
-        data-ci="${i}" data-oldname="${esc(c.name)}"
-        onblur="renameCrit(+this.dataset.ci,this.value);this.dataset.oldname=this.value"
-        style="flex:1">
+    `<div class="crit-row" data-ci="${i}">
+      <input type="text" value="${esc(c.name)}" data-ci="${i}" data-oldname="${esc(c.name)}" style="flex:1">
       <span class="w-label" style="font-size:12px;color:#888;min-width:70px">Weight: <b>${c.weight}</b></span>
-      <input type="range" min="1" max="10" step="1" value="${c.weight}"
-        data-ci="${i}"
-        oninput="setCritWeight(+this.dataset.ci,+this.value);this.previousElementSibling.innerHTML='Weight: <b>'+this.value+'</b>'">
-      <button class="icon" onclick="removeCriterion(${i})">×</button>
+      <input type="range" min="1" max="10" step="1" value="${c.weight}" data-ci="${i}">
+      <button class="icon" data-remove-ci="${i}">×</button>
     </div>`
   ).join("");
 
-  // Live weight listeners on the range inputs in settings
   cl.querySelectorAll('input[type=range]').forEach(inp=>{
-    inp.addEventListener('input', ()=>{
-      recalc(); // recalc picks up the already-updated state.criteria weight
+    inp.addEventListener('input',()=>{
+      const i=+inp.dataset.ci;
+      state.criteria[i].weight=+inp.value;
+      inp.previousElementSibling.innerHTML=`Weight: <b>${inp.value}</b>`;
+      recalc();
     });
+  });
+
+  cl.querySelectorAll('input[type=text][data-oldname]').forEach(inp=>{
+    const commit=()=>{ renameCrit(+inp.dataset.ci, inp.value); inp.dataset.oldname=inp.value; };
+    inp.addEventListener('blur', commit);
+    inp.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); inp.blur(); }});
+  });
+
+  cl.querySelectorAll('button[data-remove-ci]').forEach(btn=>{
+    btn.addEventListener('click',()=>removeCriterion(+btn.dataset.removeCI));
   });
 }
 
 // ── Mutation helpers ─────────────────────────────────────────────────────────
-function setCritWeight(i,val){
-  state.criteria[i].weight=val;
-  // recalc is triggered by the oninput listener in renderSettings
-  // but also call it directly so matrix tab totals update even from settings tab
-  recalc();
-}
-
 function renameCrit(i,newName){
   if(!newName.trim()) return;
   const old=state.criteria[i].name;
@@ -388,29 +426,29 @@ function saveScenario(){
   renderChips();
 }
 
-function loadScenario(name){if(scenarios[name]){load(scenarios[name]);showToast(`Loaded "${name}"`);};}
-function delScenario(name){delete scenarios[name];try{localStorage.setItem(SS,JSON.stringify(scenarios));}catch{}renderChips();}
+function loadScenario(name){ if(scenarios[name]){ load(scenarios[name]); showToast(`Loaded "${name}"`); } }
+function delScenario(name){ delete scenarios[name]; try{localStorage.setItem(SS,JSON.stringify(scenarios));}catch{} renderChips(); }
 
 function exportJSON(){
   const blob=new Blob([JSON.stringify({options:state.options,criteria:state.criteria,scores:state.scores},null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='decision-matrix.json';a.click();
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='decision-matrix.json'; a.click();
 }
 
 function importJSON(e){
-  const file=e.target.files[0];if(!file)return;
+  const file=e.target.files[0]; if(!file) return;
   const r=new FileReader();
-  r.onload=()=>{try{load(JSON.parse(r.result));showToast('Imported successfully');}catch{showToast('Invalid JSON');}};
+  r.onload=()=>{ try{ load(JSON.parse(r.result)); showToast('Imported successfully'); }catch{ showToast('Invalid JSON'); } };
   r.readAsText(file);
   e.target.value='';
 }
 
 function autosave(){
-  try{localStorage.setItem(SK,JSON.stringify({options:state.options,criteria:state.criteria,scores:state.scores}));}catch{}
+  try{ localStorage.setItem(SK,JSON.stringify({options:state.options,criteria:state.criteria,scores:state.scores})); }catch{}
 }
 
 function showToast(msg){
   const t=document.getElementById('toast');
-  t.textContent=msg;t.style.display='block';
+  t.textContent=msg; t.style.display='block';
   setTimeout(()=>t.style.display='none',2200);
 }
 
@@ -419,8 +457,8 @@ function esc(s){
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
-try{const r=localStorage.getItem(SK);if(r)load(JSON.parse(r));else render();}catch{render();}
-try{const s=localStorage.getItem(SS);if(s)scenarios=JSON.parse(s);}catch{}
+try{ const r=localStorage.getItem(SK); if(r) load(JSON.parse(r)); else render(); }catch{ render(); }
+try{ const s=localStorage.getItem(SS); if(s) scenarios=JSON.parse(s); }catch{}
 renderChips();
 </script>
 </body>
