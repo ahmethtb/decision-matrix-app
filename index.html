@@ -20,15 +20,11 @@ button.icon{padding:2px 7px;font-size:16px;color:#888;border-color:transparent;b
 button.icon:hover{color:#c00;background:none}
 button.danger{border-color:#f0b0b0;color:#c00}
 button.danger:hover{background:#fff0f0}
-
-/* ── Mode switcher ── */
 .mode-bar{display:flex;align-items:center;gap:0;margin-bottom:24px;border:0.5px solid #ddd;border-radius:8px;overflow:hidden;width:fit-content}
 .mode-btn{padding:8px 22px;font-size:13px;font-weight:500;background:#fff;border:none;cursor:pointer;color:#888;transition:background .15s,color .15s}
 .mode-btn:first-child{border-right:0.5px solid #ddd}
 .mode-btn.active{background:#378ADD;color:#fff}
 .mode-btn:hover:not(.active){background:#f0f0ee}
-
-/* ── Shared layout ── */
 .wrap{max-width:940px;margin:0 auto;padding:20px 16px}
 .topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px}
 .topbar-right{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -68,20 +64,15 @@ td.center{text-align:center}
 .confirm-box{background:#fff;border-radius:12px;border:0.5px solid #ddd;padding:24px 28px;max-width:340px;width:90%;text-align:center}
 .confirm-box p{font-size:14px;color:#333;margin-bottom:20px;line-height:1.5}
 .confirm-box .actions{display:flex;gap:10px;justify-content:center}
-
-/* ── Tree placeholder ── */
 .placeholder{text-align:center;padding:64px 24px;color:#aaa}
 .placeholder .icon{font-size:40px;margin-bottom:16px}
 .placeholder h2{font-size:16px;font-weight:500;color:#888;margin-bottom:8px}
 .placeholder p{font-size:13px;line-height:1.6;max-width:340px;margin:0 auto}
-
 @media(max-width:600px){.topbar{flex-direction:column;align-items:flex-start}}
 </style>
 </head>
 <body>
 <div class="wrap">
-
-  <!-- Top bar — always visible -->
   <div class="topbar">
     <h1>Decision engine</h1>
     <div class="topbar-right" id="matrixControls">
@@ -93,8 +84,6 @@ td.center{text-align:center}
       <button class="danger" onclick="confirmReset()">Reset</button>
     </div>
   </div>
-
-  <!-- Mode switcher -->
   <div class="mode-bar">
     <button class="mode-btn active" id="modeMatrix" onclick="switchMode('matrix')">Decision Matrix</button>
     <button class="mode-btn" id="modeTree" onclick="switchMode('tree')">Decision Tree</button>
@@ -109,9 +98,7 @@ td.center{text-align:center}
       <button class="tab" onclick="switchTab('settings',this)">Criteria &amp; weights</button>
     </div>
     <div id="panel-matrix" class="panel active">
-      <div style="overflow-x:auto">
-        <table id="matrixTable"></table>
-      </div>
+      <div style="overflow-x:auto"><table id="matrixTable"></table></div>
       <div class="add-row" style="margin-top:12px">
         <input type="text" id="newOpt" placeholder="New option name…" onkeydown="if(event.key==='Enter')addOption()">
         <button onclick="addOption()">+ Add option</button>
@@ -143,13 +130,11 @@ td.center{text-align:center}
     <div class="placeholder">
       <div class="icon">🌿</div>
       <h2>Decision Tree</h2>
-      <p>This is where the Decision Tree will live. Coming in Phase 3 — data model, then Phase 4 — builder UI.</p>
+      <p>Data model ready. UI coming in Phase 4.<br>Open the browser console to inspect <code>treeState</code> and run <code>calcEV(treeState.rootId)</code>.</p>
     </div>
   </div>
-
 </div>
 
-<!-- Reset confirm dialog -->
 <div class="confirm-overlay" id="confirmOverlay">
   <div class="confirm-box">
     <p>Reset everything to defaults?<br>This will clear all scores, criteria, and saved scenarios.</p>
@@ -159,10 +144,12 @@ td.center{text-align:center}
     </div>
   </div>
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script>
+// ════════════════════════════════════════════════════════════════════════════
+// MATRIX — unchanged from Phase 2
+// ════════════════════════════════════════════════════════════════════════════
 const PALETTE=["#378ADD","#1D9E75","#D85A30","#7F77DD","#D4537E","#639922","#BA7515","#E24B4A","#888780"];
 const SK="dm_autosave", SS="dm_scenarios";
 
@@ -192,18 +179,14 @@ let scenarios={};
 let activeTab="matrix";
 let activeMode="matrix";
 
-// ── Mode switcher ─────────────────────────────────────────────────────────────
 function switchMode(mode){
   activeMode=mode;
-  document.getElementById('view-matrix').style.display = mode==='matrix' ? 'block' : 'none';
-  document.getElementById('view-tree').style.display   = mode==='tree'   ? 'block' : 'none';
-  document.getElementById('modeMatrix').classList.toggle('active', mode==='matrix');
-  document.getElementById('modeTree').classList.toggle('active',   mode==='tree');
-  // Matrix controls (save/export/reset) only make sense in matrix mode for now
-  document.getElementById('matrixControls').style.display = mode==='matrix' ? 'flex' : 'none';
+  document.getElementById('view-matrix').style.display=mode==='matrix'?'block':'none';
+  document.getElementById('view-tree').style.display=mode==='tree'?'block':'none';
+  document.getElementById('modeMatrix').classList.toggle('active',mode==='matrix');
+  document.getElementById('modeTree').classList.toggle('active',mode==='tree');
+  document.getElementById('matrixControls').style.display=mode==='matrix'?'flex':'none';
 }
-
-// ── Reset ─────────────────────────────────────────────────────────────────────
 function confirmReset(){ document.getElementById('confirmOverlay').classList.add('open'); }
 function closeConfirm(){ document.getElementById('confirmOverlay').classList.remove('open'); }
 function doReset(){
@@ -215,8 +198,6 @@ function doReset(){
   render();
   showToast('Reset to defaults');
 }
-
-// ── Tab switching (matrix view only) ─────────────────────────────────────────
 function switchTab(name,btn){
   activeTab=name;
   document.querySelectorAll('#view-matrix .panel').forEach(p=>p.classList.remove('active'));
@@ -227,8 +208,6 @@ function switchTab(name,btn){
   if(name==='settings') renderSettings();
   if(name==='matrix')   renderMatrix();
 }
-
-// ── Core calculation ──────────────────────────────────────────────────────────
 function calcTotals(){
   const maxP=state.criteria.reduce((s,c)=>s+c.weight*10,0);
   return state.options.map(opt=>{
@@ -236,14 +215,11 @@ function calcTotals(){
     return{opt,total,pct:maxP>0?Math.round(total/maxP*100):0};
   }).sort((a,b)=>b.total-a.total);
 }
-
-// ── Live recalc ───────────────────────────────────────────────────────────────
 function recalc(){
   autosave();
   updateTotalsColumn();
   if(activeTab==='results') renderResults();
 }
-
 function updateTotalsColumn(){
   const ranked=calcTotals();
   document.querySelectorAll('#matrixTable tbody tr').forEach(row=>{
@@ -262,8 +238,6 @@ function updateTotalsColumn(){
     if(hint&&state.criteria[i]) hint.textContent=`w:${state.criteria[i].weight}`;
   });
 }
-
-// ── Full renders ──────────────────────────────────────────────────────────────
 function render(){
   autosave();
   renderChips();
@@ -271,7 +245,6 @@ function render(){
   if(activeTab==='results')  renderResults();
   if(activeTab==='settings') renderSettings();
 }
-
 function renderChips(){
   const w=document.getElementById("chipsWrap");
   const list=Object.keys(scenarios);
@@ -281,7 +254,6 @@ function renderChips(){
   w.querySelectorAll('[data-load]').forEach(el=>el.addEventListener('click',()=>loadScenario(el.dataset.load)));
   w.querySelectorAll('[data-del]').forEach(el=>el.addEventListener('click',()=>delScenario(el.dataset.del)));
 }
-
 function renderMatrix(){
   const t=document.getElementById("matrixTable");
   const ranked=calcTotals();
@@ -321,7 +293,6 @@ function renderMatrix(){
     btn.addEventListener('click',()=>removeOption(btn.dataset.remove));
   });
 }
-
 function renderResults(){
   const ranked=calcTotals();
   document.getElementById("metricCards").innerHTML=ranked.map(({opt,total,pct},i)=>
@@ -357,7 +328,6 @@ function renderResults(){
   });
   document.getElementById("breakdownTable").innerHTML=h+`</tbody>`;
 }
-
 function renderSettings(){
   const cl=document.getElementById("critList");
   cl.innerHTML=state.criteria.map((c,i)=>
@@ -385,8 +355,6 @@ function renderSettings(){
     btn.addEventListener('click',()=>removeCriterion(+btn.dataset.removeCI));
   });
 }
-
-// ── Mutation helpers ──────────────────────────────────────────────────────────
 function renameCrit(i,newName){
   if(!newName.trim()) return;
   const old=state.criteria[i].name;
@@ -434,8 +402,6 @@ function renameOption(oldName,newName){
   delete state.scores[oldName];
   render();
 }
-
-// ── Scenario management ───────────────────────────────────────────────────────
 function load(d){
   state={
     options:[...d.options],
@@ -481,11 +447,148 @@ function showToast(msg){
 function esc(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
-
-// ── Init ──────────────────────────────────────────────────────────────────────
 try{ const r=localStorage.getItem(SK); if(r) load(JSON.parse(r)); else render(); }catch{ render(); }
 try{ const s=localStorage.getItem(SS); if(s) scenarios=JSON.parse(s); }catch{}
 renderChips();
+
+
+// ════════════════════════════════════════════════════════════════════════════
+// TREE — Phase 3: data model + calcEV()
+// ════════════════════════════════════════════════════════════════════════════
+
+/*
+  Node shape:
+  {
+    id:       string         — unique identifier
+    label:    string         — display name
+    type:     "decision"     — you choose one child (highest EV)
+              "chance"       — nature chooses; each child has a probability
+              "outcome"      — leaf node; has a terminal value, no children
+    value:    number|null    — only used when type === "outcome"
+    children: [              — empty for outcome nodes
+      {
+        nodeId:      string   — id of the child node
+        probability: number   — only meaningful when parent is "chance"
+                                (ignored for decision nodes)
+      }
+    ]
+  }
+
+  treeState shape:
+  {
+    nodes:  { [id]: node }   — flat map of all nodes, looked up by id
+    rootId: string           — id of the root node (always a decision node)
+  }
+*/
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+let _nextId = 1;
+function newId(){ return 't' + (_nextId++); }
+
+function newNode(type, label){
+  return { id: newId(), label, type, value: null, children: [] };
+}
+
+// ── calcEV ───────────────────────────────────────────────────────────────────
+// Returns the Expected Value of the node with the given id.
+// Works bottom-up through the tree recursively.
+//
+//   outcome  → return its value directly
+//   chance   → return Σ (probability × EV of child)
+//   decision → return max EV among children (rational choice)
+
+function calcEV(nodeId, nodes){
+  const node = nodes[nodeId];
+  if(!node) return 0;
+
+  if(node.type === 'outcome'){
+    return node.value ?? 0;
+  }
+
+  if(node.type === 'chance'){
+    // Sum of (probability × child EV) across all children
+    return node.children.reduce((sum, edge) => {
+      return sum + edge.probability * calcEV(edge.nodeId, nodes);
+    }, 0);
+  }
+
+  if(node.type === 'decision'){
+    if(node.children.length === 0) return 0;
+    // Return the best (max) EV option — the rational choice
+    return Math.max(...node.children.map(edge => calcEV(edge.nodeId, nodes)));
+  }
+
+  return 0;
+}
+
+// ── treeState ────────────────────────────────────────────────────────────────
+// A worked example you can inspect in the console:
+//
+//   "Should I launch the product?"
+//
+//   [Decision] Launch?
+//   ├── Launch
+//   │   [Chance] Market response
+//   │   ├── 60% → Good  → outcome $100
+//   │   └── 40% → Poor  → outcome $10
+//   └── Don't launch
+//       [Outcome] $0
+
+const treeState = (function(){
+  const nodes = {};
+
+  const good    = newNode('outcome',  'Good market');
+  good.value    = 100;
+
+  const poor    = newNode('outcome',  'Poor market');
+  poor.value    = 10;
+
+  const market  = newNode('chance',   'Market response');
+  market.children = [
+    { nodeId: good.id, probability: 0.6 },
+    { nodeId: poor.id, probability: 0.4 }
+  ];
+
+  const noLaunch   = newNode('outcome', "Don't launch");
+  noLaunch.value   = 0;
+
+  const root    = newNode('decision', 'Launch product?');
+  root.children = [
+    { nodeId: market.id,   probability: null },
+    { nodeId: noLaunch.id, probability: null }
+  ];
+
+  [good, poor, market, noLaunch, root].forEach(n => nodes[n.id] = n);
+
+  return { nodes, rootId: root.id };
+})();
+
+// ── Self-test (runs once on load, visible in browser console) ────────────────
+(function selfTest(){
+  const n = treeState.nodes;
+  const ev = calcEV(treeState.rootId, n);
+
+  // Expected:
+  //   EV(market response) = 0.6×100 + 0.4×10 = 60 + 4 = 64
+  //   EV(don't launch)    = 0
+  //   EV(root/decision)   = max(64, 0) = 64
+
+  console.group('Phase 3 — Decision Tree self-test');
+  console.log('Tree structure:', treeState);
+  console.log('EV(root):', ev, '— expected: 64');
+  console.assert(ev === 64, 'calcEV returned wrong result!');
+
+  // Test each node individually
+  const marketNode = Object.values(n).find(x => x.type === 'chance');
+  console.log('EV(chance node):', calcEV(marketNode.id, n), '— expected: 64');
+
+  const noLaunchNode = Object.values(n).find(x => x.label === "Don't launch");
+  console.log('EV(no-launch outcome):', calcEV(noLaunchNode.id, n), '— expected: 0');
+
+  console.log('All assertions passed ✓');
+  console.groupEnd();
+})();
 </script>
 </body>
 </html>
