@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Decision Matrix</title>
+<title>Decision Engine</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:system-ui,sans-serif;font-size:14px;background:#f5f5f3;color:#1a1a1a;min-height:100vh}
@@ -20,6 +20,15 @@ button.icon{padding:2px 7px;font-size:16px;color:#888;border-color:transparent;b
 button.icon:hover{color:#c00;background:none}
 button.danger{border-color:#f0b0b0;color:#c00}
 button.danger:hover{background:#fff0f0}
+
+/* ── Mode switcher ── */
+.mode-bar{display:flex;align-items:center;gap:0;margin-bottom:24px;border:0.5px solid #ddd;border-radius:8px;overflow:hidden;width:fit-content}
+.mode-btn{padding:8px 22px;font-size:13px;font-weight:500;background:#fff;border:none;cursor:pointer;color:#888;transition:background .15s,color .15s}
+.mode-btn:first-child{border-right:0.5px solid #ddd}
+.mode-btn.active{background:#378ADD;color:#fff}
+.mode-btn:hover:not(.active){background:#f0f0ee}
+
+/* ── Shared layout ── */
 .wrap{max-width:940px;margin:0 auto;padding:20px 16px}
 .topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px}
 .topbar-right{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -59,14 +68,23 @@ td.center{text-align:center}
 .confirm-box{background:#fff;border-radius:12px;border:0.5px solid #ddd;padding:24px 28px;max-width:340px;width:90%;text-align:center}
 .confirm-box p{font-size:14px;color:#333;margin-bottom:20px;line-height:1.5}
 .confirm-box .actions{display:flex;gap:10px;justify-content:center}
+
+/* ── Tree placeholder ── */
+.placeholder{text-align:center;padding:64px 24px;color:#aaa}
+.placeholder .icon{font-size:40px;margin-bottom:16px}
+.placeholder h2{font-size:16px;font-weight:500;color:#888;margin-bottom:8px}
+.placeholder p{font-size:13px;line-height:1.6;max-width:340px;margin:0 auto}
+
 @media(max-width:600px){.topbar{flex-direction:column;align-items:flex-start}}
 </style>
 </head>
 <body>
 <div class="wrap">
+
+  <!-- Top bar — always visible -->
   <div class="topbar">
-    <h1>Decision matrix</h1>
-    <div class="topbar-right">
+    <h1>Decision engine</h1>
+    <div class="topbar-right" id="matrixControls">
       <input type="text" id="scenarioName" placeholder="Scenario name…" style="width:140px">
       <button onclick="saveScenario()">Save</button>
       <button onclick="exportJSON()">Export JSON</button>
@@ -75,40 +93,60 @@ td.center{text-align:center}
       <button class="danger" onclick="confirmReset()">Reset</button>
     </div>
   </div>
-  <div id="chipsWrap" class="chips"></div>
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('matrix',this)">Matrix</button>
-    <button class="tab" onclick="switchTab('results',this)">Results</button>
-    <button class="tab" onclick="switchTab('settings',this)">Criteria &amp; weights</button>
+
+  <!-- Mode switcher -->
+  <div class="mode-bar">
+    <button class="mode-btn active" id="modeMatrix" onclick="switchMode('matrix')">Decision Matrix</button>
+    <button class="mode-btn" id="modeTree" onclick="switchMode('tree')">Decision Tree</button>
   </div>
-  <div id="panel-matrix" class="panel active">
-    <div style="overflow-x:auto">
-      <table id="matrixTable"></table>
+
+  <!-- ── MATRIX VIEW ── -->
+  <div id="view-matrix">
+    <div id="chipsWrap" class="chips"></div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('matrix',this)">Matrix</button>
+      <button class="tab" onclick="switchTab('results',this)">Results</button>
+      <button class="tab" onclick="switchTab('settings',this)">Criteria &amp; weights</button>
     </div>
-    <div class="add-row" style="margin-top:12px">
-      <input type="text" id="newOpt" placeholder="New option name…" onkeydown="if(event.key==='Enter')addOption()">
-      <button onclick="addOption()">+ Add option</button>
+    <div id="panel-matrix" class="panel active">
+      <div style="overflow-x:auto">
+        <table id="matrixTable"></table>
+      </div>
+      <div class="add-row" style="margin-top:12px">
+        <input type="text" id="newOpt" placeholder="New option name…" onkeydown="if(event.key==='Enter')addOption()">
+        <button onclick="addOption()">+ Add option</button>
+      </div>
+    </div>
+    <div id="panel-results" class="panel">
+      <div id="metricCards" class="metric-grid"></div>
+      <div class="card">
+        <div class="section-label">Score comparison</div>
+        <div id="barChart"></div>
+      </div>
+      <div class="card">
+        <div class="section-label">Breakdown by criterion</div>
+        <div style="overflow-x:auto"><table id="breakdownTable"></table></div>
+      </div>
+    </div>
+    <div id="panel-settings" class="panel">
+      <div class="section-label">Criteria &amp; weights</div>
+      <div id="critList"></div>
+      <div class="add-row">
+        <input type="text" id="newCrit" placeholder="New criterion name…" onkeydown="if(event.key==='Enter')addCriterion()">
+        <button onclick="addCriterion()">+ Add criterion</button>
+      </div>
     </div>
   </div>
-  <div id="panel-results" class="panel">
-    <div id="metricCards" class="metric-grid"></div>
-    <div class="card">
-      <div class="section-label">Score comparison</div>
-      <div id="barChart"></div>
-    </div>
-    <div class="card">
-      <div class="section-label">Breakdown by criterion</div>
-      <div style="overflow-x:auto"><table id="breakdownTable"></table></div>
+
+  <!-- ── TREE VIEW ── -->
+  <div id="view-tree" style="display:none">
+    <div class="placeholder">
+      <div class="icon">🌿</div>
+      <h2>Decision Tree</h2>
+      <p>This is where the Decision Tree will live. Coming in Phase 3 — data model, then Phase 4 — builder UI.</p>
     </div>
   </div>
-  <div id="panel-settings" class="panel">
-    <div class="section-label">Criteria &amp; weights</div>
-    <div id="critList"></div>
-    <div class="add-row">
-      <input type="text" id="newCrit" placeholder="New criterion name…" onkeydown="if(event.key==='Enter')addCriterion()">
-      <button onclick="addCriterion()">+ Add criterion</button>
-    </div>
-  </div>
+
 </div>
 
 <!-- Reset confirm dialog -->
@@ -152,8 +190,20 @@ function freshState(){
 let state=freshState();
 let scenarios={};
 let activeTab="matrix";
+let activeMode="matrix";
 
-// ── Reset ────────────────────────────────────────────────────────────────────
+// ── Mode switcher ─────────────────────────────────────────────────────────────
+function switchMode(mode){
+  activeMode=mode;
+  document.getElementById('view-matrix').style.display = mode==='matrix' ? 'block' : 'none';
+  document.getElementById('view-tree').style.display   = mode==='tree'   ? 'block' : 'none';
+  document.getElementById('modeMatrix').classList.toggle('active', mode==='matrix');
+  document.getElementById('modeTree').classList.toggle('active',   mode==='tree');
+  // Matrix controls (save/export/reset) only make sense in matrix mode for now
+  document.getElementById('matrixControls').style.display = mode==='matrix' ? 'flex' : 'none';
+}
+
+// ── Reset ─────────────────────────────────────────────────────────────────────
 function confirmReset(){ document.getElementById('confirmOverlay').classList.add('open'); }
 function closeConfirm(){ document.getElementById('confirmOverlay').classList.remove('open'); }
 function doReset(){
@@ -166,11 +216,11 @@ function doReset(){
   showToast('Reset to defaults');
 }
 
-// ── Tab switching ────────────────────────────────────────────────────────────
+// ── Tab switching (matrix view only) ─────────────────────────────────────────
 function switchTab(name,btn){
   activeTab=name;
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#view-matrix .panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('#view-matrix .tab').forEach(b=>b.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
   btn.classList.add('active');
   if(name==='results')  renderResults();
@@ -178,7 +228,7 @@ function switchTab(name,btn){
   if(name==='matrix')   renderMatrix();
 }
 
-// ── Core calculation ─────────────────────────────────────────────────────────
+// ── Core calculation ──────────────────────────────────────────────────────────
 function calcTotals(){
   const maxP=state.criteria.reduce((s,c)=>s+c.weight*10,0);
   return state.options.map(opt=>{
@@ -187,7 +237,7 @@ function calcTotals(){
   }).sort((a,b)=>b.total-a.total);
 }
 
-// ── Live recalc (no structural re-render) ────────────────────────────────────
+// ── Live recalc ───────────────────────────────────────────────────────────────
 function recalc(){
   autosave();
   updateTotalsColumn();
@@ -213,7 +263,7 @@ function updateTotalsColumn(){
   });
 }
 
-// ── Full renders ─────────────────────────────────────────────────────────────
+// ── Full renders ──────────────────────────────────────────────────────────────
 function render(){
   autosave();
   renderChips();
@@ -228,7 +278,6 @@ function renderChips(){
   if(!list.length){w.innerHTML="";return;}
   w.innerHTML='<span style="font-size:12px;color:#888;align-self:center">Saved:</span>'+
     list.map(n=>`<span class="chip"><span style="cursor:pointer" data-load="${esc(n)}">${esc(n)}</span><span class="del" data-del="${esc(n)}">×</span></span>`).join("");
-  // Use delegated listeners — safe for names with apostrophes
   w.querySelectorAll('[data-load]').forEach(el=>el.addEventListener('click',()=>loadScenario(el.dataset.load)));
   w.querySelectorAll('[data-del]').forEach(el=>el.addEventListener('click',()=>delScenario(el.dataset.del)));
 }
@@ -245,20 +294,16 @@ function renderMatrix(){
     const r=ranked.findIndex(x=>x.opt===opt);
     const{total,pct}=ranked.find(x=>x.opt===opt);
     h+=`<tr style="background:${r===0?'rgba(55,138,221,.05)':''}">`;
-    h+=`<td><input type="text" value="${esc(opt)}" style="width:110px;font-weight:${r===0?500:400}"
-          data-oldname="${esc(opt)}"></td>`;
+    h+=`<td><input type="text" value="${esc(opt)}" style="width:110px;font-weight:${r===0?500:400}" data-oldname="${esc(opt)}"></td>`;
     state.criteria.forEach(c=>{
       const sc=state.scores[opt]?.[c.name]??5;
-      h+=`<td class="center"><input type="number" min="1" max="10" value="${sc}"
-            data-opt="${esc(opt)}" data-crit="${esc(c.name)}"></td>`;
+      h+=`<td class="center"><input type="number" min="1" max="10" value="${sc}" data-opt="${esc(opt)}" data-crit="${esc(c.name)}"></td>`;
     });
     h+=`<td style="text-align:right;font-weight:500" class="total-cell">${total}<span style="font-size:11px;color:#aaa;margin-left:3px">${pct}%</span></td>`;
     h+=`<td><button class="icon" data-remove="${esc(opt)}">×</button></td></tr>`;
   });
   h+=`</tbody>`;
   t.innerHTML=h;
-
-  // Score inputs — live update
   t.querySelectorAll('input[type=number][data-opt]').forEach(inp=>{
     inp.addEventListener('input',()=>{
       const val=Math.min(10,Math.max(1,+inp.value||1));
@@ -267,15 +312,11 @@ function renderMatrix(){
       recalc();
     });
   });
-
-  // Option name — rename on blur or Enter
   t.querySelectorAll('input[type=text][data-oldname]').forEach(inp=>{
-    const commit=()=>{ renameOption(inp.dataset.oldname, inp.value); inp.dataset.oldname=inp.value; };
-    inp.addEventListener('blur', commit);
-    inp.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); inp.blur(); }});
+    const commit=()=>{ renameOption(inp.dataset.oldname,inp.value); inp.dataset.oldname=inp.value; };
+    inp.addEventListener('blur',commit);
+    inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); inp.blur(); }});
   });
-
-  // Remove buttons — delegated, safe for any name
   t.querySelectorAll('button[data-remove]').forEach(btn=>{
     btn.addEventListener('click',()=>removeOption(btn.dataset.remove));
   });
@@ -327,7 +368,6 @@ function renderSettings(){
       <button class="icon" data-remove-ci="${i}">×</button>
     </div>`
   ).join("");
-
   cl.querySelectorAll('input[type=range]').forEach(inp=>{
     inp.addEventListener('input',()=>{
       const i=+inp.dataset.ci;
@@ -336,19 +376,17 @@ function renderSettings(){
       recalc();
     });
   });
-
   cl.querySelectorAll('input[type=text][data-oldname]').forEach(inp=>{
-    const commit=()=>{ renameCrit(+inp.dataset.ci, inp.value); inp.dataset.oldname=inp.value; };
-    inp.addEventListener('blur', commit);
-    inp.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); inp.blur(); }});
+    const commit=()=>{ renameCrit(+inp.dataset.ci,inp.value); inp.dataset.oldname=inp.value; };
+    inp.addEventListener('blur',commit);
+    inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); inp.blur(); }});
   });
-
   cl.querySelectorAll('button[data-remove-ci]').forEach(btn=>{
     btn.addEventListener('click',()=>removeCriterion(+btn.dataset.removeCI));
   });
 }
 
-// ── Mutation helpers ─────────────────────────────────────────────────────────
+// ── Mutation helpers ──────────────────────────────────────────────────────────
 function renameCrit(i,newName){
   if(!newName.trim()) return;
   const old=state.criteria[i].name;
@@ -362,7 +400,6 @@ function renameCrit(i,newName){
   });
   render();
 }
-
 function removeCriterion(i){
   const name=state.criteria[i].name;
   state.criteria.splice(i,1);
@@ -370,7 +407,6 @@ function removeCriterion(i){
   render();
   renderSettings();
 }
-
 function addCriterion(){
   const inp=document.getElementById('newCrit');
   const name=inp.value.trim()||`Criterion ${state.criteria.length+1}`;
@@ -379,7 +415,6 @@ function addCriterion(){
   render();
   if(activeTab==='settings') renderSettings();
 }
-
 function addOption(){
   const inp=document.getElementById('newOpt');
   const name=inp.value.trim()||`Option ${String.fromCharCode(65+state.options.length)}`;
@@ -387,13 +422,11 @@ function addOption(){
   inp.value='';
   render();
 }
-
 function removeOption(opt){
   state.options=state.options.filter(x=>x!==opt);
   delete state.scores[opt];
   render();
 }
-
 function renameOption(oldName,newName){
   if(!newName.trim()||newName===oldName) return;
   state.options=state.options.map(x=>x===oldName?newName:x);
@@ -412,7 +445,6 @@ function load(d){
   render();
   if(activeTab==='settings') renderSettings();
 }
-
 function saveScenario(){
   const name=document.getElementById('scenarioName').value.trim()||`Scenario ${Object.keys(scenarios).length+1}`;
   scenarios[name]={
@@ -425,15 +457,12 @@ function saveScenario(){
   document.getElementById('scenarioName').value='';
   renderChips();
 }
-
 function loadScenario(name){ if(scenarios[name]){ load(scenarios[name]); showToast(`Loaded "${name}"`); } }
 function delScenario(name){ delete scenarios[name]; try{localStorage.setItem(SS,JSON.stringify(scenarios));}catch{} renderChips(); }
-
 function exportJSON(){
   const blob=new Blob([JSON.stringify({options:state.options,criteria:state.criteria,scores:state.scores},null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='decision-matrix.json'; a.click();
 }
-
 function importJSON(e){
   const file=e.target.files[0]; if(!file) return;
   const r=new FileReader();
@@ -441,17 +470,14 @@ function importJSON(e){
   r.readAsText(file);
   e.target.value='';
 }
-
 function autosave(){
   try{ localStorage.setItem(SK,JSON.stringify({options:state.options,criteria:state.criteria,scores:state.scores})); }catch{}
 }
-
 function showToast(msg){
   const t=document.getElementById('toast');
   t.textContent=msg; t.style.display='block';
   setTimeout(()=>t.style.display='none',2200);
 }
-
 function esc(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
