@@ -66,15 +66,12 @@ td.center{text-align:center}
 .confirm-box{background:#fff;border-radius:12px;border:0.5px solid #ddd;padding:24px 28px;max-width:340px;width:90%;text-align:center}
 .confirm-box p{font-size:14px;color:#333;margin-bottom:20px;line-height:1.5}
 .confirm-box .actions{display:flex;gap:10px;justify-content:center}
-
-/* ── Tree UI ── */
 .tree-wrap{padding:4px 0}
 .tree-node{margin-bottom:8px}
 .tree-card{background:#fff;border:0.5px solid #ddd;border-radius:10px;padding:12px 14px;transition:box-shadow .2s,border-color .2s}
 .tree-card.type-decision{border-left:3px solid #378ADD}
 .tree-card.type-chance{border-left:3px solid #1D9E75}
 .tree-card.type-outcome{border-left:3px solid #888}
-/* Best-path highlight */
 .tree-card.best{background:#f0faf4;border-color:#9FE1CB;box-shadow:0 0 0 1px #5DCAA5}
 .best-badge-inline{font-size:10px;background:#1D9E75;color:#fff;padding:2px 7px;border-radius:4px;font-weight:500;white-space:nowrap}
 .tree-card-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
@@ -96,11 +93,9 @@ td.center{text-align:center}
 .ev-summary{background:#f0f6fd;border:0.5px solid #b5d4f4;border-radius:10px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .ev-summary .ev-main{font-size:22px;font-weight:500;color:#185fa5}
 .ev-summary .ev-label{font-size:12px;color:#378ADD}
-
-/* Tree toolbar (Phase 5) */
-.tree-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
-
-/* Branch breakdown (Phase 5) */
+.tree-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.solver-toggle{display:inline-flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;color:#555}
+.solver-toggle input{cursor:pointer}
 .branch-list{display:flex;flex-direction:column;gap:6px}
 .branch-row{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#f5f5f3;border-radius:6px;font-size:13px;border-left:3px solid transparent}
 .branch-row.best{background:#f0faf4;border-left-color:#1D9E75}
@@ -108,15 +103,53 @@ td.center{text-align:center}
 .branch-row.best .branch-name{font-weight:500}
 .branch-row .branch-ev{font-variant-numeric:tabular-nums;color:#555}
 .branch-row.best .branch-ev{color:#0f6e56;font-weight:500}
-
-/* Best path text (Phase 5) */
 .best-path{margin-top:10px;padding:10px 14px;background:#f0faf4;border:0.5px solid #9FE1CB;border-radius:8px;font-size:13px;line-height:1.6}
 .best-path-label{font-size:11px;color:#0f6e56;font-weight:500;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
 .best-path-text{color:#1a1a1a}
 .best-path-text .arrow{color:#5DCAA5;margin:0 4px}
 .best-path-text .final{color:#0f6e56;font-weight:500}
+.reasoning-card{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:16px 20px;margin-bottom:16px}
+.reasoning-item{padding:10px 12px;background:#f5f5f3;border-radius:8px;margin-bottom:8px;border-left:3px solid #378ADD;font-size:13px;line-height:1.5}
+.reasoning-item:last-child{margin-bottom:0}
+.reasoning-item .reason-title{font-weight:500;color:#1a1a1a;margin-bottom:4px}
+.reasoning-item .reason-detail{color:#555;font-size:12px}
+.reasoning-item .reason-detail strong{color:#0f6e56;font-weight:500}
+.reasoning-item .reason-math{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#888;margin-top:4px}
+.reasoning-empty{color:#888;font-size:13px;padding:8px 0}
+.chosen-badge{font-size:10px;background:#378ADD;color:#fff;padding:2px 7px;border-radius:4px;font-weight:500;white-space:nowrap}
 
-@media(max-width:600px){.topbar{flex-direction:column;align-items:flex-start}}
+/* ═══════════════ Diagram view ═══════════════ */
+.view-switcher{display:inline-flex;border:0.5px solid #ccc;border-radius:8px;overflow:hidden}
+.view-switcher button{border:none;border-radius:0;padding:6px 14px;background:#fff;font-size:12px;font-weight:500;color:#888;transition:background .15s,color .15s}
+.view-switcher button.active{background:#378ADD;color:#fff}
+.view-switcher button:not(:last-child){border-right:0.5px solid #ccc}
+.view-switcher button:hover:not(.active){background:#f0f0ee}
+
+.diagram-card{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:16px;margin-bottom:16px;overflow:auto}
+.diagram-hint{font-size:12px;color:#888;margin-bottom:10px;text-align:center}
+.diagram-svg{display:block;margin:0 auto;max-width:100%}
+.diagram-svg text{font-family:system-ui,sans-serif;font-size:12px;fill:#1a1a1a}
+.diagram-svg .node-label{font-weight:500}
+.diagram-svg .node-sub{font-size:10px;fill:#666}
+.diagram-svg .edge-label{font-size:10px;fill:#555;font-weight:500}
+.diagram-svg .edge-line{fill:none;stroke:#c8c8c5;stroke-width:1.5}
+.diagram-svg .edge-line.best{stroke:#1D9E75;stroke-width:2.5}
+.diagram-svg .node-decision rect{fill:#e6f1fb;stroke:#378ADD;stroke-width:1.5}
+.diagram-svg .node-chance circle{fill:#e1f5ee;stroke:#1D9E75;stroke-width:1.5}
+.diagram-svg .node-outcome rect{fill:#f1efee;stroke:#888;stroke-width:1.5}
+.diagram-svg .node.best rect, .diagram-svg .node.best circle{stroke-width:2.5;filter:drop-shadow(0 0 3px rgba(29,158,117,.35))}
+.diagram-svg .node.best rect{fill:#d5f0e3}
+.diagram-svg .node.best circle{fill:#c6ecda}
+.diagram-legend{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;margin-top:12px;font-size:11px;color:#555}
+.diagram-legend span{display:inline-flex;align-items:center;gap:5px}
+.diagram-legend .dot{width:12px;height:12px;border-radius:3px;display:inline-block;border:1.5px solid}
+.diagram-legend .dot.circle{border-radius:50%}
+.diagram-legend .dot.decision{background:#e6f1fb;border-color:#378ADD}
+.diagram-legend .dot.chance{background:#e1f5ee;border-color:#1D9E75}
+.diagram-legend .dot.outcome{background:#f1efee;border-color:#888}
+.diagram-legend .dot.best{background:#d5f0e3;border-color:#1D9E75}
+
+@media(max-width:600px){.topbar{flex-direction:column;align-items:flex-start}.solver-toggle{margin-left:0}}
 </style>
 </head>
 <body>
@@ -169,15 +202,21 @@ td.center{text-align:center}
 
   <!-- ── TREE VIEW ── -->
   <div id="view-tree" style="display:none">
-
     <div class="tree-toolbar">
+      <div class="view-switcher">
+        <button id="viewList" class="active" onclick="setTreeView('list')">List</button>
+        <button id="viewDiagram" onclick="setTreeView('diagram')">Diagram</button>
+      </div>
       <button onclick="treeExportJSON()">Export tree JSON</button>
       <button onclick="document.getElementById('treeFileIn').click()">Import tree JSON</button>
       <input type="file" id="treeFileIn" accept=".json" style="display:none" onchange="treeImportJSON(event)">
       <button class="danger" onclick="treeReset()">Reset tree</button>
+      <label class="solver-toggle">
+        <input type="checkbox" id="solverToggle" checked onchange="renderTree()">
+        Solver aan
+      </label>
     </div>
 
-    <!-- Summary (EV + best option + best path) -->
     <div id="treeSummary" style="display:none" class="ev-summary">
       <div>
         <div class="ev-label">Expected value</div>
@@ -191,9 +230,21 @@ td.center{text-align:center}
       <input type="text" id="rootLabel" placeholder="e.g. Should I launch the product?" style="flex:1;min-width:200px">
     </div>
 
+    <!-- Diagram view — shown only in diagram mode -->
+    <div id="diagramCard" class="diagram-card" style="display:none">
+      <div class="diagram-hint">Bekijk hieronder je boom als diagram. Bewerk nog steeds in de <strong>List</strong> weergave.</div>
+      <div id="diagramSvgWrap"></div>
+      <div class="diagram-legend">
+        <span><span class="dot decision"></span>Decision (keuze)</span>
+        <span><span class="dot circle chance"></span>Chance (kans)</span>
+        <span><span class="dot outcome"></span>Outcome (uitkomst)</span>
+        <span><span class="dot best"></span>Beste pad</span>
+      </div>
+    </div>
+
+    <!-- List view — shown only in list mode -->
     <div id="treeWrap" class="tree-wrap"></div>
 
-    <!-- Branch breakdown + best path (Phase 5) -->
     <div id="branchBreakdownCard" class="card" style="display:none">
       <div class="section-label">Branch breakdown</div>
       <div id="branchList" class="branch-list"></div>
@@ -201,6 +252,11 @@ td.center{text-align:center}
         <div class="best-path-label">Best path</div>
         <div class="best-path-text" id="bestPathText"></div>
       </div>
+    </div>
+
+    <div id="reasoningCard" class="reasoning-card" style="display:none">
+      <div class="section-label">Why the solver chose this (backward induction)</div>
+      <div id="reasoningList"></div>
     </div>
 
   </div>
@@ -219,7 +275,7 @@ td.center{text-align:center}
 
 <script>
 // ════════════════════════════════════════════════════════════════════════════
-// MATRIX
+// MATRIX — unchanged
 // ════════════════════════════════════════════════════════════════════════════
 const PALETTE=["#378ADD","#1D9E75","#D85A30","#7F77DD","#D4537E","#639922","#BA7515","#E24B4A","#888780"];
 const SK="dm_autosave",SS="dm_scenarios";
@@ -235,15 +291,7 @@ const DEFAULTS={
 };
 function freshState(){return{options:[...DEFAULTS.options],criteria:DEFAULTS.criteria.map(c=>({...c})),scores:JSON.parse(JSON.stringify(DEFAULTS.scores))};}
 let state=freshState(),scenarios={},activeTab="matrix",activeMode="matrix";
-function switchMode(mode){
-  activeMode=mode;
-  document.getElementById('view-matrix').style.display=mode==='matrix'?'block':'none';
-  document.getElementById('view-tree').style.display=mode==='tree'?'block':'none';
-  document.getElementById('modeMatrix').classList.toggle('active',mode==='matrix');
-  document.getElementById('modeTree').classList.toggle('active',mode==='tree');
-  document.getElementById('matrixControls').style.display=mode==='matrix'?'flex':'none';
-  if(mode==='tree') renderTree();
-}
+function switchMode(mode){activeMode=mode;document.getElementById('view-matrix').style.display=mode==='matrix'?'block':'none';document.getElementById('view-tree').style.display=mode==='tree'?'block':'none';document.getElementById('modeMatrix').classList.toggle('active',mode==='matrix');document.getElementById('modeTree').classList.toggle('active',mode==='tree');document.getElementById('matrixControls').style.display=mode==='matrix'?'flex':'none';if(mode==='tree')renderTree();}
 function confirmReset(){document.getElementById('confirmOverlay').classList.add('open');}
 function closeConfirm(){document.getElementById('confirmOverlay').classList.remove('open');}
 function doReset(){try{localStorage.removeItem(SK);localStorage.removeItem(SS);}catch{}scenarios={};state=freshState();closeConfirm();renderChips();render();showToast('Reset to defaults');}
@@ -277,377 +325,205 @@ renderChips();
 
 
 // ════════════════════════════════════════════════════════════════════════════
-// TREE — Phase 5
+// TREE — data + solver (unchanged from previous phase)
 // ════════════════════════════════════════════════════════════════════════════
-
 let _nextId=1;
 function newId(){return 't'+(_nextId++);}
 function newNode(type,label){return{id:newId(),label,type,value:null,children:[]};}
-
-function calcEV(nodeId,nodes){
-  const node=nodes[nodeId];if(!node)return 0;
-  if(node.type==='outcome')return node.value??0;
-  if(node.type==='chance')return node.children.reduce((sum,e)=>sum+e.probability*calcEV(e.nodeId,nodes),0);
-  if(node.type==='decision'){if(!node.children.length)return 0;return Math.max(...node.children.map(e=>calcEV(e.nodeId,nodes)));}
-  return 0;
-}
-
-// Given a decision node id, returns the id of the best child (highest EV)
-function bestChildId(nodeId,nodes){
-  const n=nodes[nodeId];
-  if(!n||n.type!=='decision'||!n.children.length)return null;
-  let bestId=null,bestEV=-Infinity;
-  n.children.forEach(e=>{
-    const ev=calcEV(e.nodeId,nodes);
-    if(ev>bestEV){bestEV=ev;bestId=e.nodeId;}
-  });
-  return bestId;
-}
-
-// Computes the set of "winning" node ids on the best path through the tree.
-// At every decision node along the path, we take the best child.
-// At every chance node, we include ALL children (they can all happen).
-// At outcomes, we stop.
-function computeBestPathSet(rootId,nodes){
-  const set=new Set();
-  function walk(id){
-    const n=nodes[id];if(!n)return;
-    set.add(id);
-    if(n.type==='outcome')return;
-    if(n.type==='decision'){
-      const b=bestChildId(id,nodes);
-      if(b)walk(b);
-    } else if(n.type==='chance'){
-      n.children.forEach(e=>walk(e.nodeId));
-    }
-  }
-  walk(rootId);
-  return set;
-}
-
-// Produces a human-readable path from root → best decision → (chance outcomes)
-// Used in the "Best path" summary box.
-function describeBestPath(rootId,nodes){
-  const root=nodes[rootId];
-  if(!root||!root.children.length)return null;
-  const best=bestChildId(rootId,nodes);
-  if(!best)return null;
-  const bestNode=nodes[best];
-  const ev=calcEV(best,nodes);
-  return {optionLabel:bestNode.label||'(no name)',ev};
-}
-
-function freshTreeState(){
-  const nodes={};
-  const root=newNode('decision','My decision');
-  nodes[root.id]=root;
-  return{nodes,rootId:root.id};
-}
+function calcEV(nodeId,nodes){const node=nodes[nodeId];if(!node)return 0;if(node.type==='outcome')return node.value??0;if(node.type==='chance')return node.children.reduce((sum,e)=>sum+e.probability*calcEV(e.nodeId,nodes),0);if(node.type==='decision'){if(!node.children.length)return 0;return Math.max(...node.children.map(e=>calcEV(e.nodeId,nodes)));}return 0;}
+function bestChildId(nodeId,nodes){const n=nodes[nodeId];if(!n||n.type!=='decision'||!n.children.length)return null;let bestId=null,bestEV=-Infinity;n.children.forEach(e=>{const ev=calcEV(e.nodeId,nodes);if(ev>bestEV){bestEV=ev;bestId=e.nodeId;}});return bestId;}
+function computeBestPathSet(rootId,nodes){const set=new Set();function walk(id){const n=nodes[id];if(!n)return;set.add(id);if(n.type==='outcome')return;if(n.type==='decision'){const b=bestChildId(id,nodes);if(b)walk(b);}else if(n.type==='chance'){n.children.forEach(e=>walk(e.nodeId));}}walk(rootId);return set;}
+function solveBackwardInduction(rootId,nodes){const chosenAt=new Map();const reasoning=[];function walk(id){const n=nodes[id];if(!n)return;n.children.forEach(e=>walk(e.nodeId));if(n.type!=='decision'||n.children.length===0)return;const options=n.children.map(e=>{const child=nodes[e.nodeId];return{childId:e.nodeId,label:child?.label||'(no name)',ev:calcEV(e.nodeId,nodes)};});let bestEV=-Infinity,bestIdx=0;options.forEach((o,i)=>{if(o.ev>bestEV){bestEV=o.ev;bestIdx=i;}});options.forEach((o,i)=>o.isChosen=(i===bestIdx));chosenAt.set(id,options[bestIdx].childId);reasoning.push({decisionId:id,decisionLabel:n.label||'Decision',options:options.slice().sort((a,b)=>b.ev-a.ev),chosenLabel:options[bestIdx].label,chosenEV:options[bestIdx].ev});}walk(rootId);return{chosenAt,reasoning};}
+function freshTreeState(){const nodes={};const root=newNode('decision','My decision');nodes[root.id]=root;return{nodes,rootId:root.id};}
 let treeState=freshTreeState();
-
-// ── Tree persistence ─────────────────────────────────────────────────────────
 const TK="dm_tree_autosave";
 function treeAutosave(){try{localStorage.setItem(TK,JSON.stringify({state:treeState,nextId:_nextId}));}catch{}}
-function treeLoadSaved(){
-  try{
-    const raw=localStorage.getItem(TK);if(!raw)return;
-    const d=JSON.parse(raw);
-    if(d&&d.state&&d.state.nodes&&d.state.rootId){
-      treeState=d.state;
-      _nextId=d.nextId||(Object.keys(d.state.nodes).length+1);
-    }
-  }catch{}
-}
-
+function treeLoadSaved(){try{const raw=localStorage.getItem(TK);if(!raw)return;const d=JSON.parse(raw);if(d&&d.state&&d.state.nodes&&d.state.rootId){treeState=d.state;_nextId=d.nextId||(Object.keys(d.state.nodes).length+1);}}catch{}}
 function treeReset(){_nextId=1;treeState=freshTreeState();document.getElementById('rootLabel').value='';renderTree();treeAutosave();}
-
-function treeAddChild(parentId){
-  const parent=treeState.nodes[parentId];
-  let child;
-  if(parent.type==='decision'){child=newNode('chance','Option '+(parent.children.length+1));}
-  else if(parent.type==='chance'){child=newNode('outcome','Outcome '+(parent.children.length+1));child.value=0;}
-  else return;
-  treeState.nodes[child.id]=child;
-  if(parent.type==='chance'){
-    parent.children.push({nodeId:child.id,probability:0});
-    const even=parseFloat((1/parent.children.length).toFixed(2));
-    parent.children.forEach(e=>e.probability=even);
-  } else {
-    parent.children.push({nodeId:child.id,probability:null});
-  }
-  renderTree();
-}
-
-function treeRemoveNode(nodeId){
-  function collectIds(id){const n=treeState.nodes[id];if(!n)return[];return[id,...n.children.flatMap(e=>collectIds(e.nodeId))];}
-  const toRemove=new Set(collectIds(nodeId));
-  Object.values(treeState.nodes).forEach(n=>{n.children=n.children.filter(e=>!toRemove.has(e.nodeId));});
-  toRemove.forEach(id=>delete treeState.nodes[id]);
-  renderTree();
-}
-
-function treeChangeType(nodeId,newType){
-  const node=treeState.nodes[nodeId];
-  if(node.type===newType)return;
-  node.type=newType;
-  if(newType==='outcome'){node.value=node.value??0;node.children=[];}
-  if(newType==='decision')node.value=null;
-  if(newType==='chance')node.value=null;
-  renderTree();
-}
-
+function treeAddChild(parentId){const parent=treeState.nodes[parentId];let child;if(parent.type==='decision'){child=newNode('chance','Option '+(parent.children.length+1));}else if(parent.type==='chance'){child=newNode('outcome','Outcome '+(parent.children.length+1));child.value=0;}else return;treeState.nodes[child.id]=child;if(parent.type==='chance'){parent.children.push({nodeId:child.id,probability:0});const even=parseFloat((1/parent.children.length).toFixed(2));parent.children.forEach(e=>e.probability=even);}else{parent.children.push({nodeId:child.id,probability:null});}renderTree();}
+function treeRemoveNode(nodeId){function collectIds(id){const n=treeState.nodes[id];if(!n)return[];return[id,...n.children.flatMap(e=>collectIds(e.nodeId))];}const toRemove=new Set(collectIds(nodeId));Object.values(treeState.nodes).forEach(n=>{n.children=n.children.filter(e=>!toRemove.has(e.nodeId));});toRemove.forEach(id=>delete treeState.nodes[id]);renderTree();}
+function treeChangeType(nodeId,newType){const node=treeState.nodes[nodeId];if(node.type===newType)return;node.type=newType;if(newType==='outcome'){node.value=node.value??0;node.children=[];}if(newType==='decision')node.value=null;if(newType==='chance')node.value=null;renderTree();}
 function probSum(node){return node.children.reduce((s,e)=>s+(+e.probability||0),0);}
+function treeExportJSON(){const blob=new Blob([JSON.stringify(treeState,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='decision-tree.json';a.click();showToast('Tree exported');}
+function treeImportJSON(e){const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||!d.nodes||!d.rootId)throw new Error('invalid tree');treeState=d;const maxId=Math.max(0,...Object.keys(d.nodes).map(k=>+k.replace(/\D/g,''))||[0]);_nextId=maxId+1;renderTree();showToast('Tree imported');}catch{showToast('Invalid tree JSON');}};r.readAsText(file);e.target.value='';}
+function makeNumInput(value,{min=null,max=null,step=null,placeholder='',width='90px',onChange}={}){const wrap=document.createElement('div');wrap.style.display='inline-flex';wrap.style.flexDirection='column';wrap.style.gap='2px';const inp=document.createElement('input');inp.type='text';inp.className='tree-num-input';inp.value=value!==null&&value!==undefined?String(value):'';inp.placeholder=placeholder;inp.style.width=width;inp.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});const errMsg=document.createElement('div');errMsg.className='field-error';function validate(raw){const cleaned=raw.replace(',','.');if(cleaned.trim()===''){errMsg.textContent='';inp.classList.remove('error');return null;}const num=parseFloat(cleaned);if(isNaN(num)){inp.classList.add('error');errMsg.textContent='Vul een geldig getal in (bijv. 0.6 of 100)';return null;}if(min!==null&&num<min){inp.classList.add('error');errMsg.textContent=`Minimum is ${min}`;return null;}if(max!==null&&num>max){inp.classList.add('error');errMsg.textContent=`Maximum is ${max}`;return null;}inp.classList.remove('error');errMsg.textContent='';return num;}inp.addEventListener('blur',()=>{const num=validate(inp.value);if(num!==null){inp.value=String(num);if(onChange)onChange(num);}});inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();inp.blur();}});inp.addEventListener('input',()=>{const cleaned=inp.value.replace(',','.');const num=parseFloat(cleaned);if(inp.value.trim()!==''&&isNaN(num)){inp.classList.add('error');}else{inp.classList.remove('error');errMsg.textContent='';}});wrap.appendChild(inp);wrap.appendChild(errMsg);return wrap;}
+function solverOn(){return document.getElementById('solverToggle')?.checked ?? true;}
 
-// ── Tree export / import (Phase 5) ───────────────────────────────────────────
-function treeExportJSON(){
-  const blob=new Blob([JSON.stringify(treeState,null,2)],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='decision-tree.json';
-  a.click();
-  showToast('Tree exported');
+// ════════════════════════════════════════════════════════════════════════════
+// View mode (list vs diagram) — Phase 7
+// ════════════════════════════════════════════════════════════════════════════
+let treeViewMode='list';
+function setTreeView(mode){
+  treeViewMode=mode;
+  document.getElementById('viewList').classList.toggle('active',mode==='list');
+  document.getElementById('viewDiagram').classList.toggle('active',mode==='diagram');
+  document.getElementById('treeWrap').style.display = mode==='list' ? 'block' : 'none';
+  document.getElementById('diagramCard').style.display = mode==='diagram' ? 'block' : 'none';
+  renderTree();
 }
 
-function treeImportJSON(e){
-  const file=e.target.files[0];if(!file)return;
-  const r=new FileReader();
-  r.onload=()=>{
-    try{
-      const d=JSON.parse(r.result);
-      if(!d||!d.nodes||!d.rootId)throw new Error('invalid tree');
-      treeState=d;
-      // bump _nextId to avoid id collisions on next insert
-      const maxId=Math.max(0,...Object.keys(d.nodes).map(k=>+k.replace(/\D/g,''))||[0]);
-      _nextId=maxId+1;
-      renderTree();
-      showToast('Tree imported');
-    }catch{showToast('Invalid tree JSON');}
-  };
-  r.readAsText(file);
-  e.target.value='';
-}
-
-// ── Numeric input helper ─────────────────────────────────────────────────────
-function makeNumInput(value,{min=null,max=null,step=null,placeholder='',width='90px',onChange}={}){
-  const wrap=document.createElement('div');
-  wrap.style.display='inline-flex';wrap.style.flexDirection='column';wrap.style.gap='2px';
-  const inp=document.createElement('input');
-  inp.type='text';inp.className='tree-num-input';
-  inp.value=value!==null&&value!==undefined?String(value):'';
-  inp.placeholder=placeholder;inp.style.width=width;
-  inp.addEventListener('wheel',e=>e.stopPropagation(),{passive:true});
-  const errMsg=document.createElement('div');errMsg.className='field-error';
-  function validate(raw){
-    const cleaned=raw.replace(',','.');
-    if(cleaned.trim()===''){errMsg.textContent='';inp.classList.remove('error');return null;}
-    const num=parseFloat(cleaned);
-    if(isNaN(num)){inp.classList.add('error');errMsg.textContent='Vul een geldig getal in (bijv. 0.6 of 100)';return null;}
-    if(min!==null&&num<min){inp.classList.add('error');errMsg.textContent=`Minimum is ${min}`;return null;}
-    if(max!==null&&num>max){inp.classList.add('error');errMsg.textContent=`Maximum is ${max}`;return null;}
-    inp.classList.remove('error');errMsg.textContent='';return num;
-  }
-  inp.addEventListener('blur',()=>{const num=validate(inp.value);if(num!==null){inp.value=String(num);if(onChange)onChange(num);}});
-  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();inp.blur();}});
-  inp.addEventListener('input',()=>{const cleaned=inp.value.replace(',','.');const num=parseFloat(cleaned);if(inp.value.trim()!==''&&isNaN(num)){inp.classList.add('error');}else{inp.classList.remove('error');errMsg.textContent='';}});
-  wrap.appendChild(inp);wrap.appendChild(errMsg);
-  return wrap;
-}
-
-// ── renderTree ───────────────────────────────────────────────────────────────
 function renderTree(){
   treeAutosave();
   const rootLabelInp=document.getElementById('rootLabel');
   const root=treeState.nodes[treeState.rootId];
   if(root&&document.activeElement!==rootLabelInp)rootLabelInp.value=root.label||'';
   rootLabelInp.oninput=()=>{if(root){root.label=rootLabelInp.value;updateEVSummary();}treeAutosave();};
-
-  // Compute best-path set for highlighting
   const bestSet=computeBestPathSet(treeState.rootId,treeState.nodes);
+  const solver= solverOn() ? solveBackwardInduction(treeState.rootId,treeState.nodes) : null;
 
-  const wrap=document.getElementById('treeWrap');
-  wrap.innerHTML='';
-  if(root)wrap.appendChild(buildNodeEl(treeState.rootId,bestSet));
+  if(treeViewMode==='list'){
+    const wrap=document.getElementById('treeWrap');
+    wrap.innerHTML='';
+    if(root)wrap.appendChild(buildNodeEl(treeState.rootId,bestSet,solver));
+  } else {
+    renderDiagram(bestSet,solver);
+  }
+
   updateEVSummary();
   renderBranchBreakdown();
+  renderReasoning(solver);
 }
 
-function updateEVSummary(){
+function updateEVSummary(){const root=treeState.nodes[treeState.rootId];const hasChildren=root&&root.children.length>0;const summary=document.getElementById('treeSummary');summary.style.display=hasChildren?'flex':'none';if(!hasChildren)return;const ev=calcEV(treeState.rootId,treeState.nodes);document.getElementById('treeEVDisplay').textContent=ev.toFixed(2);if(root.type==='decision'&&root.children.length){const b=bestChildId(treeState.rootId,treeState.nodes);if(b){const bLbl=treeState.nodes[b]?.label||'(no name)';const bEV=calcEV(b,treeState.nodes);document.getElementById('treeEVNote').textContent=`Best option: "${bLbl}" with EV = ${bEV.toFixed(2)}`;}else{document.getElementById('treeEVNote').textContent='';}}else{document.getElementById('treeEVNote').textContent='';}}
+function renderBranchBreakdown(){const root=treeState.nodes[treeState.rootId];const card=document.getElementById('branchBreakdownCard');const list=document.getElementById('branchList');const pathBox=document.getElementById('bestPathBox');if(!root||root.type!=='decision'||root.children.length===0){card.style.display='none';return;}card.style.display='block';const rows=root.children.map(e=>{const n=treeState.nodes[e.nodeId];return{id:e.nodeId,label:n?.label||'(no name)',ev:calcEV(e.nodeId,treeState.nodes)};}).sort((a,b)=>b.ev-a.ev);list.innerHTML=rows.map((r,i)=>`<div class="branch-row${i===0?' best':''}"><span class="branch-name">${i===0?'🥇 ':''}${esc(r.label)}</span><span class="branch-ev">EV = ${r.ev.toFixed(2)}</span></div>`).join('');const bestOptId=bestChildId(treeState.rootId,treeState.nodes);if(bestOptId){const bestOpt=treeState.nodes[bestOptId];let text=`<strong>${esc(root.label||'Root')}</strong><span class="arrow">→</span><strong>${esc(bestOpt.label||'(no name)')}</strong>`;if(bestOpt.type==='chance'&&bestOpt.children.length){const outcomesText=bestOpt.children.map(e=>{const n=treeState.nodes[e.nodeId];const pct=Math.round((e.probability||0)*100);return `${esc(n?.label||'?')} (${pct}%)`;}).join(', ');text+=`<span class="arrow">→</span><span class="final">${outcomesText}</span>`;}else if(bestOpt.type==='outcome'){text+=`<span class="arrow">→</span><span class="final">value ${bestOpt.value??0}</span>`;}text+=` <span style="color:#888">· EV = ${calcEV(bestOptId,treeState.nodes).toFixed(2)}</span>`;document.getElementById('bestPathText').innerHTML=text;pathBox.style.display='block';}else{pathBox.style.display='none';}}
+function renderReasoning(solver){const card=document.getElementById('reasoningCard');const list=document.getElementById('reasoningList');if(!solver||solver.reasoning.length===0){card.style.display='none';return;}card.style.display='block';const items=solver.reasoning.slice().reverse();list.innerHTML=items.map(r=>{const optsText=r.options.map(o=>{const marker=o.isChosen?'✓ ':'• ';const evStr=o.ev.toFixed(2);return `${marker}${esc(o.label)} (EV = ${evStr})`;}).join(' &nbsp;·&nbsp; ');const sorted=r.options.slice().sort((a,b)=>b.ev-a.ev);let compareStr='';if(sorted.length>=2){compareStr=`${sorted[0].ev.toFixed(2)} > ${sorted.slice(1).map(o=>o.ev.toFixed(2)).join(' > ')}`;}else{compareStr=`${sorted[0].ev.toFixed(2)}`;}return `<div class="reasoning-item"><div class="reason-title">At "${esc(r.decisionLabel)}" → choose <strong>${esc(r.chosenLabel)}</strong></div><div class="reason-detail">Because its EV of <strong>${r.chosenEV.toFixed(2)}</strong> is the highest.</div><div class="reason-math">${optsText}</div><div class="reason-math">Compare: ${compareStr}</div></div>`;}).join('');}
+
+function buildNodeEl(nodeId,bestSet,solver){const node=treeState.nodes[nodeId];if(!node)return document.createTextNode('');const wrap=document.createElement('div');wrap.className='tree-node';const card=document.createElement('div');card.className=`tree-card type-${node.type}`;if(bestSet.has(nodeId)&&nodeId!==treeState.rootId)card.classList.add('best');const header=document.createElement('div');header.className='tree-card-header';const labelInp=document.createElement('input');labelInp.type='text';labelInp.className='tree-label-input';labelInp.value=node.label||'';labelInp.placeholder='Label…';labelInp.addEventListener('input',()=>{node.label=labelInp.value;updateEVSummary();renderBranchBreakdown();treeAutosave();if(treeViewMode==='diagram'){const bestSet=computeBestPathSet(treeState.rootId,treeState.nodes);const solver=solverOn()?solveBackwardInduction(treeState.rootId,treeState.nodes):null;renderDiagram(bestSet,solver);}});const typeSel=document.createElement('select');[{v:'decision',t:'Decision'},{v:'chance',t:'Chance'},{v:'outcome',t:'Outcome'}].forEach(({v,t})=>{const o=document.createElement('option');o.value=v;o.textContent=t;if(v===node.type)o.selected=true;typeSel.appendChild(o);});if(nodeId===treeState.rootId)typeSel.disabled=true;typeSel.style.cssText='font-size:11px;padding:2px 6px;border-radius:4px;';typeSel.addEventListener('change',()=>treeChangeType(nodeId,typeSel.value));header.append(labelInp,typeSel);if(solver){const chosenBy=[...solver.chosenAt.entries()].find(([,childId])=>childId===nodeId);if(chosenBy){const badge=document.createElement('span');badge.className='chosen-badge';badge.textContent='✓ solver picks';header.appendChild(badge);}}if(bestSet.has(nodeId)&&nodeId!==treeState.rootId){const badge=document.createElement('span');badge.className='best-badge-inline';badge.textContent='best';header.appendChild(badge);}const evSpan=document.createElement('span');evSpan.className='tree-ev';if(node.type!=='outcome'){const ev=calcEV(nodeId,treeState.nodes);evSpan.innerHTML=`EV: <strong>${ev.toFixed(2)}</strong>`;}header.appendChild(evSpan);card.appendChild(header);if(node.type==='outcome'){const body=document.createElement('div');body.className='tree-card-body';const lbl=document.createElement('label');lbl.textContent='Value:';const valWrap=makeNumInput(node.value??0,{placeholder:'bijv. 100',width:'100px',onChange(num){node.value=num;renderTree();}});body.append(lbl,valWrap);card.appendChild(body);}const parent=Object.values(treeState.nodes).find(n=>n.children.some(e=>e.nodeId===nodeId));if(parent&&parent.type==='chance'){const edge=parent.children.find(e=>e.nodeId===nodeId);const probBody=document.createElement('div');probBody.className='tree-card-body';const lbl=document.createElement('label');lbl.textContent='Kans (0–1):';const probWrap=makeNumInput(edge.probability??0,{min:0,max:1,placeholder:'bijv. 0.6',width:'100px',onChange(num){edge.probability=num;renderTree();}});probBody.append(lbl,probWrap);card.appendChild(probBody);const sum=probSum(parent);if(parent.children.length>1&&Math.abs(sum-1)>0.001){const warn=document.createElement('div');warn.className='prob-warning';warn.textContent=`Kansen tellen op tot ${sum.toFixed(2)} — moet 1.00 zijn`;card.appendChild(warn);}}const actions=document.createElement('div');actions.className='tree-actions';if(node.type!=='outcome'){const addBtn=document.createElement('button');addBtn.className='small';addBtn.textContent=node.type==='decision'?'+ Add option':'+ Add outcome';addBtn.addEventListener('click',()=>treeAddChild(nodeId));actions.appendChild(addBtn);}if(nodeId!==treeState.rootId){const delBtn=document.createElement('button');delBtn.className='small danger';delBtn.textContent='Remove';delBtn.addEventListener('click',()=>treeRemoveNode(nodeId));actions.appendChild(delBtn);}if(actions.children.length)card.appendChild(actions);wrap.appendChild(card);if(node.children.length){const childWrap=document.createElement('div');childWrap.className='tree-children';node.children.forEach(edge=>childWrap.appendChild(buildNodeEl(edge.nodeId,bestSet,solver)));wrap.appendChild(childWrap);}return wrap;}
+
+// ════════════════════════════════════════════════════════════════════════════
+// DIAGRAM RENDERER — Phase 7
+// ════════════════════════════════════════════════════════════════════════════
+//
+// Top-down tree layout with two passes:
+//   1. Measure pass: figure out how much horizontal space each subtree needs,
+//      based on the number of leaves it contains. This prevents sibling
+//      branches from overlapping.
+//   2. Position pass: assign (x,y) to every node given the measured widths.
+//
+// Then we draw into an SVG: rectangles for decision/outcome, circles for
+// chance, plus edges (lines) between a parent and each child. Edges that
+// are on the "best path" are drawn thicker and green.
+
+const NODE_W=160;            // width of a rectangle node
+const NODE_H=58;              // height of a rectangle node
+const CIRCLE_R=32;            // radius of a chance (circle) node
+const LEVEL_GAP=110;          // vertical gap between tree levels
+const SIBLING_GAP=24;         // minimum horizontal gap between sibling subtrees
+const PAD_X=30, PAD_Y=24;     // padding inside the SVG
+
+function renderDiagram(bestSet,solver){
+  const wrap=document.getElementById('diagramSvgWrap');
   const root=treeState.nodes[treeState.rootId];
-  const hasChildren=root&&root.children.length>0;
-  const summary=document.getElementById('treeSummary');
-  summary.style.display=hasChildren?'flex':'none';
-  if(!hasChildren)return;
-  const ev=calcEV(treeState.rootId,treeState.nodes);
-  document.getElementById('treeEVDisplay').textContent=ev.toFixed(2);
-  if(root.type==='decision'&&root.children.length){
-    const best=describeBestPath(treeState.rootId,treeState.nodes);
-    if(best){
-      document.getElementById('treeEVNote').textContent=`Best option: "${best.optionLabel}" with EV = ${best.ev.toFixed(2)}`;
-    } else {
-      document.getElementById('treeEVNote').textContent='';
-    }
-  } else {
-    document.getElementById('treeEVNote').textContent='';
+  if(!root){ wrap.innerHTML=''; return; }
+
+  // ── Pass 1: measure each subtree's width (in pixels) ────────────────────
+  // Width of a leaf = its own node width.
+  // Width of a parent = max(own width, sum of children widths + gaps).
+  const widths={}; // nodeId → px
+  function measure(id){
+    const n=treeState.nodes[id]; if(!n){widths[id]=NODE_W;return NODE_W;}
+    const self=(n.type==='chance') ? CIRCLE_R*2 : NODE_W;
+    if(!n.children.length){ widths[id]=self; return self; }
+    const childrenWidth=n.children.reduce((s,e,i)=>s+measure(e.nodeId)+(i>0?SIBLING_GAP:0),0);
+    const w=Math.max(self,childrenWidth);
+    widths[id]=w; return w;
   }
-}
+  measure(treeState.rootId);
 
-// ── Branch breakdown + best path (Phase 5) ──────────────────────────────────
-function renderBranchBreakdown(){
-  const root=treeState.nodes[treeState.rootId];
-  const card=document.getElementById('branchBreakdownCard');
-  const list=document.getElementById('branchList');
-  const pathBox=document.getElementById('bestPathBox');
-
-  if(!root||root.type!=='decision'||root.children.length===0){
-    card.style.display='none';return;
+  // ── Pass 2: position each node (x,y) given its parent's left edge ───────
+  // We lay out children left-to-right, each centered over its own subtree.
+  const positions={}; // nodeId → {x, y}  (x = center x, y = center y)
+  function position(id,leftEdge,depth){
+    const n=treeState.nodes[id];
+    const w=widths[id];
+    const cx=leftEdge + w/2;
+    const cy=PAD_Y + depth*LEVEL_GAP + NODE_H/2;
+    positions[id]={x:cx,y:cy};
+    // lay children out within [leftEdge, leftEdge+w]
+    if(!n.children.length) return;
+    const childrenTotal=n.children.reduce((s,e,i)=>s+widths[e.nodeId]+(i>0?SIBLING_GAP:0),0);
+    let cursor=leftEdge + (w - childrenTotal)/2;
+    n.children.forEach((e,i)=>{
+      position(e.nodeId,cursor,depth+1);
+      cursor += widths[e.nodeId] + SIBLING_GAP;
+    });
   }
-  card.style.display='block';
+  position(treeState.rootId,PAD_X,0);
 
-  // Compute EV for each top-level option and sort descending
-  const rows=root.children.map(e=>{
-    const n=treeState.nodes[e.nodeId];
-    return{id:e.nodeId,label:n?.label||'(no name)',ev:calcEV(e.nodeId,treeState.nodes)};
-  }).sort((a,b)=>b.ev-a.ev);
+  // ── Figure out the SVG viewport size ────────────────────────────────────
+  let maxX=0,maxY=0;
+  Object.values(positions).forEach(p=>{maxX=Math.max(maxX,p.x+NODE_W/2);maxY=Math.max(maxY,p.y+NODE_H/2);});
+  const svgW=maxX+PAD_X, svgH=maxY+PAD_Y;
 
-  list.innerHTML=rows.map((r,i)=>
-    `<div class="branch-row${i===0?' best':''}">
-      <span class="branch-name">${i===0?'🥇 ':''}${esc(r.label)}</span>
-      <span class="branch-ev">EV = ${r.ev.toFixed(2)}</span>
-    </div>`
-  ).join('');
+  // ── Build SVG ────────────────────────────────────────────────────────────
+  const parts=[];
+  parts.push(`<svg class="diagram-svg" viewBox="0 0 ${svgW} ${svgH}" width="${svgW}" height="${svgH}" xmlns="http://www.w3.org/2000/svg">`);
 
-  // Best path text (root → best option → expected chance outcomes)
-  const bestOptId=bestChildId(treeState.rootId,treeState.nodes);
-  if(bestOptId){
-    const bestOpt=treeState.nodes[bestOptId];
-    let text=`<strong>${esc(root.label||'Root')}</strong><span class="arrow">→</span><strong>${esc(bestOpt.label||'(no name)')}</strong>`;
-    // If the best option is a chance node, list its likely outcomes
-    if(bestOpt.type==='chance'&&bestOpt.children.length){
-      const outcomesText=bestOpt.children.map(e=>{
-        const n=treeState.nodes[e.nodeId];
+  // Edges first (so they render under nodes)
+  function drawEdges(id){
+    const n=treeState.nodes[id]; if(!n) return;
+    const parentPos=positions[id];
+    n.children.forEach(e=>{
+      const childPos=positions[e.nodeId];
+      const isBestEdge = bestSet.has(id) && bestSet.has(e.nodeId)
+        && ( n.type!=='decision' || bestChildId(id,treeState.nodes)===e.nodeId );
+      // Curved path (parent bottom → child top)
+      const x1=parentPos.x, y1=parentPos.y + ((n.type==='chance')?CIRCLE_R:NODE_H/2);
+      const x2=childPos.x;
+      const ccN=treeState.nodes[e.nodeId];
+      const y2=childPos.y - ((ccN.type==='chance')?CIRCLE_R:NODE_H/2);
+      const midY=(y1+y2)/2;
+      const d=`M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`;
+      parts.push(`<path class="edge-line${isBestEdge?' best':''}" d="${d}"/>`);
+
+      // Edge label (probability % when parent is chance)
+      if(n.type==='chance'){
         const pct=Math.round((e.probability||0)*100);
-        return `${esc(n?.label||'?')} (${pct}%)`;
-      }).join(', ');
-      text+=`<span class="arrow">→</span><span class="final">${outcomesText}</span>`;
-    } else if(bestOpt.type==='outcome'){
-      text+=`<span class="arrow">→</span><span class="final">value ${bestOpt.value??0}</span>`;
-    }
-    text+=` <span style="color:#888">· EV = ${calcEV(bestOptId,treeState.nodes).toFixed(2)}</span>`;
-    document.getElementById('bestPathText').innerHTML=text;
-    pathBox.style.display='block';
-  } else {
-    pathBox.style.display='none';
+        const lx=(x1+x2)/2, ly=(y1+y2)/2 - 4;
+        parts.push(`<text class="edge-label" x="${lx}" y="${ly}" text-anchor="middle">${pct}%</text>`);
+      }
+      drawEdges(e.nodeId);
+    });
   }
+  drawEdges(treeState.rootId);
+
+  // Nodes
+  function drawNodes(id){
+    const n=treeState.nodes[id]; if(!n) return;
+    const p=positions[id];
+    const isBest = bestSet.has(id) && id!==treeState.rootId;
+    const cls = `node node-${n.type}${isBest?' best':''}`;
+    const label=(n.label||'').length>22 ? (n.label||'').slice(0,21)+'…' : (n.label||'');
+
+    if(n.type==='chance'){
+      parts.push(`<g class="${cls}">`);
+      parts.push(`<circle cx="${p.x}" cy="${p.y}" r="${CIRCLE_R}"/>`);
+      parts.push(`<text class="node-label" x="${p.x}" y="${p.y-2}" text-anchor="middle">${esc(label)}</text>`);
+      const ev=calcEV(id,treeState.nodes);
+      parts.push(`<text class="node-sub" x="${p.x}" y="${p.y+12}" text-anchor="middle">EV ${ev.toFixed(2)}</text>`);
+      parts.push(`</g>`);
+    } else {
+      // rectangle node (decision or outcome)
+      const x=p.x-NODE_W/2, y=p.y-NODE_H/2;
+      parts.push(`<g class="${cls}">`);
+      parts.push(`<rect x="${x}" y="${y}" width="${NODE_W}" height="${NODE_H}" rx="8" ry="8"/>`);
+      parts.push(`<text class="node-label" x="${p.x}" y="${p.y-4}" text-anchor="middle">${esc(label)}</text>`);
+      if(n.type==='outcome'){
+        parts.push(`<text class="node-sub" x="${p.x}" y="${p.y+14}" text-anchor="middle">value: ${n.value??0}</text>`);
+      } else {
+        const ev=calcEV(id,treeState.nodes);
+        parts.push(`<text class="node-sub" x="${p.x}" y="${p.y+14}" text-anchor="middle">EV ${ev.toFixed(2)}</text>`);
+      }
+      parts.push(`</g>`);
+    }
+    n.children.forEach(e=>drawNodes(e.nodeId));
+  }
+  drawNodes(treeState.rootId);
+
+  parts.push(`</svg>`);
+  wrap.innerHTML=parts.join('');
 }
 
-function buildNodeEl(nodeId,bestSet){
-  const node=treeState.nodes[nodeId];if(!node)return document.createTextNode('');
-
-  const wrap=document.createElement('div');wrap.className='tree-node';
-
-  const card=document.createElement('div');
-  card.className=`tree-card type-${node.type}`;
-  // Highlight if on best path (but not the root — root is always "on" the path)
-  if(bestSet.has(nodeId)&&nodeId!==treeState.rootId)card.classList.add('best');
-
-  // header
-  const header=document.createElement('div');header.className='tree-card-header';
-
-  const labelInp=document.createElement('input');
-  labelInp.type='text';labelInp.className='tree-label-input';
-  labelInp.value=node.label||'';labelInp.placeholder='Label…';
-  labelInp.addEventListener('input',()=>{node.label=labelInp.value;updateEVSummary();renderBranchBreakdown();treeAutosave();});
-
-  const typeSel=document.createElement('select');
-  [{v:'decision',t:'Decision'},{v:'chance',t:'Chance'},{v:'outcome',t:'Outcome'}].forEach(({v,t})=>{
-    const o=document.createElement('option');o.value=v;o.textContent=t;if(v===node.type)o.selected=true;typeSel.appendChild(o);
-  });
-  if(nodeId===treeState.rootId)typeSel.disabled=true;
-  typeSel.style.cssText='font-size:11px;padding:2px 6px;border-radius:4px;';
-  typeSel.addEventListener('change',()=>treeChangeType(nodeId,typeSel.value));
-
-  // "Best" inline badge — only for chance/outcome nodes on the best path
-  // (not shown on root decision node)
-  if(bestSet.has(nodeId)&&nodeId!==treeState.rootId){
-    const badge=document.createElement('span');
-    badge.className='best-badge-inline';
-    badge.textContent='best';
-    header.append(labelInp,typeSel,badge);
-  } else {
-    header.append(labelInp,typeSel);
-  }
-
-  const evSpan=document.createElement('span');evSpan.className='tree-ev';
-  if(node.type!=='outcome'){
-    const ev=calcEV(nodeId,treeState.nodes);
-    evSpan.innerHTML=`EV: <strong>${ev.toFixed(2)}</strong>`;
-  }
-  header.appendChild(evSpan);
-  card.appendChild(header);
-
-  // body (outcome value)
-  if(node.type==='outcome'){
-    const body=document.createElement('div');body.className='tree-card-body';
-    const lbl=document.createElement('label');lbl.textContent='Value:';
-    const valWrap=makeNumInput(node.value??0,{
-      placeholder:'bijv. 100',width:'100px',
-      onChange(num){node.value=num;renderTree();}
-    });
-    body.append(lbl,valWrap);
-    card.appendChild(body);
-  }
-
-  // probability input (shown when parent is chance)
-  const parent=Object.values(treeState.nodes).find(n=>n.children.some(e=>e.nodeId===nodeId));
-  if(parent&&parent.type==='chance'){
-    const edge=parent.children.find(e=>e.nodeId===nodeId);
-    const probBody=document.createElement('div');probBody.className='tree-card-body';
-    const lbl=document.createElement('label');lbl.textContent='Kans (0–1):';
-    const probWrap=makeNumInput(edge.probability??0,{
-      min:0,max:1,placeholder:'bijv. 0.6',width:'100px',
-      onChange(num){edge.probability=num;renderTree();}
-    });
-    probBody.append(lbl,probWrap);
-    card.appendChild(probBody);
-
-    const sum=probSum(parent);
-    if(parent.children.length>1&&Math.abs(sum-1)>0.001){
-      const warn=document.createElement('div');
-      warn.className='prob-warning';
-      warn.textContent=`Kansen tellen op tot ${sum.toFixed(2)} — moet 1.00 zijn`;
-      card.appendChild(warn);
-    }
-  }
-
-  // actions
-  const actions=document.createElement('div');actions.className='tree-actions';
-  if(node.type!=='outcome'){
-    const addBtn=document.createElement('button');addBtn.className='small';
-    addBtn.textContent=node.type==='decision'?'+ Add option':'+ Add outcome';
-    addBtn.addEventListener('click',()=>treeAddChild(nodeId));
-    actions.appendChild(addBtn);
-  }
-  if(nodeId!==treeState.rootId){
-    const delBtn=document.createElement('button');delBtn.className='small danger';
-    delBtn.textContent='Remove';
-    delBtn.addEventListener('click',()=>treeRemoveNode(nodeId));
-    actions.appendChild(delBtn);
-  }
-  if(actions.children.length)card.appendChild(actions);
-
-  wrap.appendChild(card);
-
-  // children
-  if(node.children.length){
-    const childWrap=document.createElement('div');childWrap.className='tree-children';
-    node.children.forEach(edge=>childWrap.appendChild(buildNodeEl(edge.nodeId,bestSet)));
-    wrap.appendChild(childWrap);
-  }
-
-  return wrap;
-}
-
-// ── Init tree (load saved state if any) ─────────────────────────────────────
 treeLoadSaved();
 </script>
 </body>
